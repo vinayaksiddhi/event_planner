@@ -8,13 +8,27 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ display: "flex", gap: "20px" }}>
-      <h2>Event Planner</h2>
+    <div style={{ display: "flex", gap: "20px", padding: "10px" }}>
+      <h2 style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+        Event Planner
+      </h2>
+
+      <button onClick={() => navigate("/events")}>Events</button>
 
       {user ? (
         <>
+          <button onClick={() => navigate("/create")}>
+            Create Event
+          </button>
+
           <span>{user.email}</span>
-          <button onClick={() => supabase.auth.signOut()}>
+
+          <button
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate("/login");
+            }}
+          >
             Logout
           </button>
         </>
