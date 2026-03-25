@@ -1,12 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import supabase from "../services/supabase";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Events() {
   const [events, setEvents] = useState([]);
+  const [joinedEvents, setJoinedEvents] = useState([]);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+    if (user) fetchJoinedEvents();
+  }, [user]);
 
   const fetchEvents = async () => {
     const { data, error } = await supabase.from("events").select("*");
@@ -15,18 +19,75 @@ export default function Events() {
     else setEvents(data);
   };
 
+  const fetchJoinedEvents = async () => {
+    const { data, error } = await supabase
+      .from("registrations")
+      .select("event_id")
+      .eq("user_id", user.id);
+
+    if (error) console.log(error);
+    else {
+      const ids = data.map((item) => item.event_id);
+      setJoinedEvents(ids);
+    }
+  };
+
+  const handleRegister = async (eventId) => {
+    if (!user) {
+      alert("Please login first!");
+      return;
+    }
+
+    const { error } = await supabase.from("registrations").insert([
+      {
+        user_id: user.id,
+        event_id: eventId
+      }
+    ]);
+
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Joined successfully!");
+      fetchJoinedEvents(); // refresh
+    }
+  };
+
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h1>Events</h1>
 
-      {events.map((event) => (
-        <div key={event.id}>
-          <h3>{event.title}</h3>
-          <p>{event.description}</p>
-          <p>{event.date}</p>
-          <p>{event.location}</p>
-        </div>
-      ))}
+      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+        {events.map((event) => {
+          const isJoined = joinedEvents.includes(event.id);
+
+          return (
+            <div
+              key={event.id}
+              style={{
+                border: "1px solid gray",
+                padding: "15px",
+                width: "250px",
+                borderRadius: "10px",
+                boxShadow: "2px 2px 10px rgba(0,0,0,0.1)"
+              }}
+            >
+              <h3>{event.title}</h3>
+              <p>{event.description}</p>
+              <p><b>Date:</b> {event.date}</p>
+              <p><b>Location:</b> {event.location}</p>
+
+              {isJoined ? (
+                <button disabled>Joined ✅</button>
+              ) : (
+                <button onClick={() => handleRegister(event.id)}>
+                  Join Event
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
