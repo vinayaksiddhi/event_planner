@@ -14,9 +14,7 @@ export default function Events() {
 
   const fetchEvents = async () => {
     const { data, error } = await supabase.from("events").select("*");
-
-    if (error) console.log(error);
-    else setEvents(data);
+    if (!error) setEvents(data);
   };
 
   const fetchJoinedEvents = async () => {
@@ -25,8 +23,7 @@ export default function Events() {
       .select("event_id")
       .eq("user_id", user.id);
 
-    if (error) console.log(error);
-    else {
+    if (!error) {
       const ids = data.map((item) => item.event_id);
       setJoinedEvents(ids);
     }
@@ -39,17 +36,25 @@ export default function Events() {
     }
 
     const { error } = await supabase.from("registrations").insert([
-      {
-        user_id: user.id,
-        event_id: eventId
-      }
+      { user_id: user.id, event_id: eventId }
     ]);
 
-    if (error) {
-      alert(error.message);
-    } else {
+    if (!error) {
       alert("Joined successfully!");
-      fetchJoinedEvents(); // refresh
+      fetchJoinedEvents();
+    }
+  };
+
+  const handleLeave = async (eventId) => {
+    const { error } = await supabase
+      .from("registrations")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("event_id", eventId);
+
+    if (!error) {
+      alert("Left event!");
+      fetchJoinedEvents();
     }
   };
 
@@ -78,7 +83,9 @@ export default function Events() {
               <p><b>Location:</b> {event.location}</p>
 
               {isJoined ? (
-                <button disabled>Joined ✅</button>
+                <button onClick={() => handleLeave(event.id)}>
+                  Leave Event ❌
+                </button>
               ) : (
                 <button onClick={() => handleRegister(event.id)}>
                   Join Event
