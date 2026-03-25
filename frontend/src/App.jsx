@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Events from "./pages/Events";
 import CreateEvent from "./pages/CreateEvent";
+import MyEvents from "./pages/MyEvents";
 
 function App() {
   return (
@@ -20,7 +21,7 @@ function App() {
         {/* Events page */}
         <Route path="/events" element={<Events />} />
 
-        {/* Create event (protected) */}
+        {/* Protected routes */}
         <Route
           path="/create"
           element={
@@ -30,7 +31,16 @@ function App() {
           }
         />
 
-        {/* Dashboard (home) */}
+        <Route
+          path="/my-events"
+          element={
+            <ProtectedRoute>
+              <MyEvents />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Dashboard */}
         <Route
           path="/"
           element={

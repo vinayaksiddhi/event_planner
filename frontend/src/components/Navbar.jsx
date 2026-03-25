@@ -8,7 +8,14 @@ export default function Navbar() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ display: "flex", gap: "20px", padding: "10px" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: "20px",
+        padding: "10px",
+        alignItems: "center"
+      }}
+    >
       <h2 style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
         Event Planner
       </h2>
@@ -19,6 +26,10 @@ export default function Navbar() {
         <>
           <button onClick={() => navigate("/create")}>
             Create Event
+          </button>
+
+          <button onClick={() => navigate("/my-events")}>
+            My Events
           </button>
 
           <span>{user.email}</span>
