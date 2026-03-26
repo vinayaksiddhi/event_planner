@@ -1,119 +1,104 @@
-import { useEffect, useState, useContext, useRef } from "react";
+import { useEffect, useState, useContext } from "react";
 import supabase from "../services/supabase";
 import { AuthContext } from "../context/AuthContext";
-import { QRCode } from "react-qr-code";
-import * as htmlToImage from "html-to-image";
+import QRCode from "react-qr-code";
 
 export default function MyEvents() {
   const { user } = useContext(AuthContext);
-  const [events, setEvents] = useState([]); // ✅ ALWAYS ARRAY
-  const refs = useRef({});
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    if (user) {
-      fetchMyEvents();
-    }
+    if (user) fetchMyEvents();
   }, [user]);
 
   const fetchMyEvents = async () => {
-    try {
-      // 1️⃣ Get registrations
-      const { data: regData, error: regError } = await supabase
-        .from("registrations")
-        .select("event_id")
-        .eq("user_id", user.id);
+    const { data: registrations } = await supabase
+      .from("registrations")
+      .select("event_id")
+      .eq("user_id", user.id);
 
-      if (regError) {
-        console.error(regError);
-        return;
-      }
-
-      if (!regData || regData.length === 0) {
-        setEvents([]);
-        return;
-      }
-
-      // 2️⃣ Extract event IDs
-      const eventIds = regData.map((r) => r.event_id);
-
-      // 3️⃣ Fetch events
-      const { data: eventData, error: eventError } = await supabase
-        .from("events")
-        .select("*")
-        .in("id", eventIds);
-
-      if (eventError) {
-        console.error(eventError);
-        return;
-      }
-
-      setEvents(eventData || []);
-    } catch (err) {
-      console.error("ERROR:", err);
+    if (!registrations || registrations.length === 0) {
+      setEvents([]);
+      return;
     }
+
+    const eventIds = registrations.map((r) => r.event_id);
+
+    const { data: eventsData } = await supabase
+      .from("events")
+      .select("*")
+      .in("id", eventIds);
+
+    setEvents(eventsData || []);
   };
 
-  const downloadTicket = async (eventId) => {
-    try {
-      const node = refs.current[eventId];
-      if (!node) return;
+  // 🔥 DOWNLOAD QR FUNCTION
+  const downloadQR = (eventId) => {
+    const svg = document.getElementById(`qr-${eventId}`);
+    const svgData = new XMLSerializer().serializeToString(svg);
 
-      const dataUrl = await htmlToImage.toPng(node);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-      const link = document.createElement("a");
-      link.download = "ticket.png";
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error("Download error:", err);
-    }
+    const img = new Image();
+
+    img.onload = () => {
+      canvas.width = 200;
+      canvas.height = 200;
+      ctx.drawImage(img, 0, 0);
+
+      const pngFile = canvas.toDataURL("image/png");
+
+      const downloadLink = document.createElement("a");
+      downloadLink.download = `event-${eventId}.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+
+    img.src =
+      "data:image/svg+xml;base64," +
+      btoa(unescape(encodeURIComponent(svgData)));
   };
-
-  // 🔒 Prevent crash if user not loaded yet
-  if (!user) {
-    return <h2 style={{ padding: "20px" }}>Loading...</h2>;
-  }
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>My Events 🎟️</h1>
+      <h2>My Events 🎟️</h2>
 
-      {/* ✅ SAFE CHECK */}
-      {!Array.isArray(events) || events.length === 0 ? (
+      {events.length === 0 ? (
         <p>No events joined yet</p>
       ) : (
-        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          {events.map((event) => {
-            const qrValue = `${user.email}-${event.id}`;
+        events.map((event) => (
+          <div
+            key={event.id}
+            style={{
+              border: "1px solid gray",
+              padding: "15px",
+              margin: "10px",
+              borderRadius: "10px",
+              width: "300px",
+            }}
+          >
+            <h3>{event.title}</h3>
+            <p>{event.description}</p>
+            <p><b>Date:</b> {event.date}</p>
+            <p><b>Location:</b> {event.location}</p>
 
-            return (
-              <div key={event.id}>
-                <div
-                  ref={(el) => (refs.current[event.id] = el)}
-                  style={{
-                    border: "1px solid gray",
-                    padding: "15px",
-                    width: "260px",
-                    borderRadius: "10px",
-                    boxShadow: "2px 2px 10px rgba(0,0,0,0.1)"
-                  }}
-                >
-                  <h3>{event.title}</h3>
-                  <p>{event.description}</p>
-                  <p><b>Date:</b> {event.date}</p>
-                  <p><b>Location:</b> {event.location}</p>
+            {/* 🔥 QR */}
+            <div id={`qr-${event.id}`}>
+              <QRCode
+                value={`${user.id}-${event.id}`}
+                size={150}
+              />
+            </div>
 
-                  <QRCode value={qrValue} size={120} />
-                  <p style={{ fontSize: "12px" }}>Scan for entry</p>
-                </div>
+            <p>Scan for entry</p>
 
-                <button onClick={() => downloadTicket(event.id)}>
-                  Download Ticket 📥
-                </button>
-              </div>
-            );
-          })}
-        </div>
+            {/* 🔥 DOWNLOAD BUTTON */}
+            <button onClick={() => downloadQR(event.id)}>
+              Download QR
+            </button>
+          </div>
+        ))
       )}
     </div>
   );
