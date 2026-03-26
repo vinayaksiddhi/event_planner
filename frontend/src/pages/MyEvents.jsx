@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import supabase from "../services/supabase";
 import { AuthContext } from "../context/AuthContext";
-import QRCode from "react-qr-code";
+import { QRCodeCanvas } from "qrcode.react"; // ✅ CORRECT
 
 export default function MyEvents() {
   const { user } = useContext(AuthContext);
@@ -12,52 +12,34 @@ export default function MyEvents() {
   }, [user]);
 
   const fetchMyEvents = async () => {
-    const { data: registrations } = await supabase
+    const { data, error } = await supabase
       .from("registrations")
-      .select("event_id")
+      .select("events(*)")
       .eq("user_id", user.id);
 
-    if (!registrations || registrations.length === 0) {
-      setEvents([]);
+    if (error) {
+      console.error("Error:", error);
       return;
     }
 
-    const eventIds = registrations.map((r) => r.event_id);
+    const eventList = data
+      .map((item) => item.events)
+      .filter((e) => e !== null);
 
-    const { data: eventsData } = await supabase
-      .from("events")
-      .select("*")
-      .in("id", eventIds);
-
-    setEvents(eventsData || []);
+    setEvents(eventList);
   };
 
   // 🔥 DOWNLOAD QR FUNCTION
   const downloadQR = (eventId) => {
-    const svg = document.getElementById(`qr-${eventId}`);
-    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.getElementById(`qr-${eventId}`);
+    if (!canvas) return;
 
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const url = canvas.toDataURL("image/png");
 
-    const img = new Image();
-
-    img.onload = () => {
-      canvas.width = 200;
-      canvas.height = 200;
-      ctx.drawImage(img, 0, 0);
-
-      const pngFile = canvas.toDataURL("image/png");
-
-      const downloadLink = document.createElement("a");
-      downloadLink.download = `event-${eventId}.png`;
-      downloadLink.href = pngFile;
-      downloadLink.click();
-    };
-
-    img.src =
-      "data:image/svg+xml;base64," +
-      btoa(unescape(encodeURIComponent(svgData)));
+    const link = document.createElement("a");
+    link.download = `event-${eventId}.png`;
+    link.href = url;
+    link.click();
   };
 
   return (
@@ -83,19 +65,18 @@ export default function MyEvents() {
             <p><b>Date:</b> {event.date}</p>
             <p><b>Location:</b> {event.location}</p>
 
-            {/* 🔥 QR */}
-            <div id={`qr-${event.id}`}>
-              <QRCode
-                value={`${user.id}-${event.id}`}
-                size={150}
-              />
-            </div>
+            {/* ✅ QR CODE */}
+            <QRCodeCanvas
+              id={`qr-${event.id}`}
+              value={`${user.id}-${event.id}`}
+              size={150}
+            />
 
             <p>Scan for entry</p>
 
-            {/* 🔥 DOWNLOAD BUTTON */}
+            {/* ✅ DOWNLOAD BUTTON */}
             <button onClick={() => downloadQR(event.id)}>
-              Download QR
+              Download QR ⬇️
             </button>
           </div>
         ))

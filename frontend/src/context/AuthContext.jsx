@@ -5,57 +5,32 @@ export const AuthContext = createContext();
 
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchRole = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", userId)
-        .single();
-
-      if (error) throw error;
-
-      setRole(data?.role || "user");
-    } catch (err) {
-      console.error("Role fetch error:", err);
-      setRole("user");
-    }
-  };
-
   useEffect(() => {
+    // get current session
     const getSession = async () => {
       const { data } = await supabase.auth.getSession();
-
-      if (data.session?.user) {
-        setUser(data.session.user);
-        await fetchRole(data.session.user.id);
-      }
-
+      setUser(data.session?.user || null);
       setLoading(false);
     };
 
     getSession();
 
+    // listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-          await fetchRole(session.user.id);
-        } else {
-          setUser(null);
-          setRole(null);
-        }
+      (event, session) => {
+        setUser(session?.user || null);
       }
     );
 
-    return () => listener.subscription.unsubscribe();
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, role, loading }}>
+    <AuthContext.Provider value={{ user, loading }}>
       {children}
     </AuthContext.Provider>
   );

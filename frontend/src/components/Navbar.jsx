@@ -1,10 +1,10 @@
 import { useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import supabase from "../services/supabase";
-import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
-  const { user, role } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -14,28 +14,19 @@ export default function Navbar() {
 
   return (
     <div style={{ display: "flex", gap: "15px", padding: "10px" }}>
-      <h2 onClick={() => navigate("/")}>Event Planner</h2>
+      <h2 style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+        Event Planner
+      </h2>
 
       <button onClick={() => navigate("/events")}>Events</button>
 
       {user && (
         <>
-          <button onClick={() => navigate("/my-events")}>My Events</button>
+          <button onClick={() => navigate("/my-events")}>
+            My Events
+          </button>
           <button onClick={() => navigate("/certificates")}>
-            My Certificates
-          </button>
-        </>
-      )}
-
-      {role === "admin" && (
-        <>
-          <button onClick={() => navigate("/create")}>Create</button>
-          <button onClick={() => navigate("/scan")}>Scan QR</button>
-          <button onClick={() => navigate("/upload-certificate")}>
-            Upload Cert
-          </button>
-          <button onClick={() => navigate("/admin-certificates")}>
-            Manage Certs
+            Certificates
           </button>
         </>
       )}

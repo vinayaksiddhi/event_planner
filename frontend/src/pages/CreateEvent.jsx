@@ -1,59 +1,41 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import supabase from "../services/supabase";
-import { AuthContext } from "../context/AuthContext";
 
 export default function CreateEvent() {
-  const { user, role } = useContext(AuthContext);
-
-  // 🔒 ADMIN PROTECTION
-  if (role !== "admin") {
-    return <h2 style={{ padding: "20px" }}>Access Denied 🚫</h2>;
-  }
-
-  const [title, setTitle] = useState("");
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState("");
-  const [location, setLocation] = useState("");
 
   const handleCreate = async () => {
-    if (!title || !date) {
-      alert("Title and Date are required");
+    if (!name || !description) {
+      alert("All fields required");
       return;
     }
 
     const { error } = await supabase.from("events").insert([
       {
-        title,
+        name,
         description,
-        date,
-        location,
-        created_by: user.id, // 🔥 link to admin
       },
     ]);
 
     if (error) {
+      console.error(error);
       alert("Error creating event");
-      console.log(error);
-      return;
+    } else {
+      alert("✅ Event created");
+      setName("");
+      setDescription("");
     }
-
-    alert("✅ Event Created");
-
-    // reset form
-    setTitle("");
-    setDescription("");
-    setDate("");
-    setLocation("");
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div>
       <h2>Create Event</h2>
 
       <input
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Event Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
       />
 
       <input
@@ -61,21 +43,17 @@ export default function CreateEvent() {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
-
       <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
+        placeholder="Date"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
       />
-
       <input
         placeholder="Location"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
       />
-
-      <br /><br />
-
+      
       <button onClick={handleCreate}>Create</button>
     </div>
   );
