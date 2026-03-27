@@ -7,19 +7,39 @@ export default function Register() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user"); // 🔥 NEW
 
   const handleSignup = async () => {
+    // 🔐 Create auth user
     const { data, error } = await supabase.auth.signUp({
       email,
-      password
+      password,
     });
 
     if (error) {
       alert(error.message);
-    } else {
-      alert("Signup successful! Please login.");
-      navigate("/login");
+      return;
     }
+
+    const userId = data.user?.id;
+
+    // 🔥 Insert into users table
+    const { error: dbError } = await supabase.from("users").insert([
+      {
+        id: userId,
+        email: email,
+        role: role, // "user" or "admin"
+      },
+    ]);
+
+    if (dbError) {
+      console.error(dbError);
+      alert("Error saving user role");
+      return;
+    }
+
+    alert("✅ Registered successfully! Please login.");
+    navigate("/login");
   };
 
   return (
@@ -27,6 +47,7 @@ export default function Register() {
       <h1>Register</h1>
 
       <input
+        type="email"
         placeholder="Email"
         onChange={(e) => setEmail(e.target.value)}
       />
@@ -37,6 +58,13 @@ export default function Register() {
         placeholder="Password"
         onChange={(e) => setPassword(e.target.value)}
       />
+      <br /><br />
+
+      {/* 🔥 ROLE SELECT */}
+      <select onChange={(e) => setRole(e.target.value)}>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
       <br /><br />
 
       <button onClick={handleSignup}>Register</button>

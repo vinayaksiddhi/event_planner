@@ -1,20 +1,24 @@
-import { useState } from "react";
+ import { useState } from "react";
 import supabase from "../services/supabase";
 
 export default function CreateEvent() {
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [date, setDate] = useState("");
+  const [location, setLocation] = useState("");
 
   const handleCreate = async () => {
-    if (!name || !description) {
+    if (!title || !description || !date || !location) {
       alert("All fields required");
       return;
     }
 
     const { error } = await supabase.from("events").insert([
       {
-        name,
+        title,
         description,
+        date,
+        location,
       },
     ]);
 
@@ -23,8 +27,10 @@ export default function CreateEvent() {
       alert("Error creating event");
     } else {
       alert("✅ Event created");
-      setName("");
+      setTitle("");
       setDescription("");
+      setDate("");
+      setLocation("");
     }
   };
 
@@ -34,8 +40,8 @@ export default function CreateEvent() {
 
       <input
         placeholder="Event Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
       />
 
       <input
@@ -43,17 +49,19 @@ export default function CreateEvent() {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
+
       <input
-        placeholder="Date"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
       />
+
       <input
         placeholder="Location"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
       />
-      
+
       <button onClick={handleCreate}>Create</button>
     </div>
   );

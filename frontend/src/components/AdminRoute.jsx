@@ -1,16 +1,16 @@
 import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function AdminRoute({ children }) {
-  const { user, role, loading } = useContext(AuthContext);
+  const { user, role } = useContext(AuthContext);
 
-  if (loading) return <h2>Loading...</h2>;
-
-  if (!user) return <Navigate to="/login" />;
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
 
   if (role !== "admin") {
-    return <h2>Not Authorized 🚫</h2>;
+    return <Navigate to="/events" />; // redirect normal users
   }
 
   return children;

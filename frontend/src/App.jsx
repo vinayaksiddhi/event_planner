@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 
@@ -9,7 +9,11 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ScanQR from "./pages/ScanQR";
 
-// 🆕 Certificate Pages
+// 🔥 NEW PAGES
+import Profile from "./pages/Profile";
+import Attendance from "./pages/Attendance";
+
+// 🔥 Certificate Pages
 import UploadCertificate from "./pages/UploadCertificate";
 import Certificates from "./pages/Certificates";
 import AdminCertificates from "./pages/AdminCertificates";
@@ -23,13 +27,21 @@ export default function App() {
       <Navbar />
 
       <Routes>
-        {/* PUBLIC ROUTES */}
-        <Route path="/" element={<Events />} />
-        <Route path="/events" element={<Events />} />
+        {/* 🔓 PUBLIC ROUTES */}
+        <Route path="/" element={<Navigate to="/events" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* USER PROTECTED */}
+        {/* 👤 USER ROUTES */}
+        <Route
+          path="/events"
+          element={
+            <ProtectedRoute>
+              <Events />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/my-events"
           element={
@@ -39,7 +51,26 @@ export default function App() {
           }
         />
 
-        {/* ADMIN ROUTES */}
+        <Route
+          path="/certificates"
+          element={
+            <ProtectedRoute>
+              <Certificates />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 🔥 PROFILE (USER + ADMIN) */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* 👨‍💼 ADMIN ROUTES */}
         <Route
           path="/create"
           element={
@@ -58,17 +89,16 @@ export default function App() {
           }
         />
 
-        {/* 🆕 USER: VIEW & DOWNLOAD CERTIFICATES */}
+        {/* 🔥 ATTENDANCE PAGE */}
         <Route
-          path="/certificates"
+          path="/attendance"
           element={
-            <ProtectedRoute>
-              <Certificates />
-            </ProtectedRoute>
+            <AdminRoute>
+              <Attendance />
+            </AdminRoute>
           }
         />
 
-        {/* 🆕 ADMIN: UPLOAD CERTIFICATES */}
         <Route
           path="/upload-certificate"
           element={
@@ -78,7 +108,6 @@ export default function App() {
           }
         />
 
-        {/* 🆕 ADMIN: MANAGE ALL CERTIFICATES */}
         <Route
           path="/admin-certificates"
           element={
@@ -87,6 +116,9 @@ export default function App() {
             </AdminRoute>
           }
         />
+
+        {/* ❌ FALLBACK */}
+        <Route path="*" element={<h2>Page Not Found</h2>} />
       </Routes>
     </Router>
   );
