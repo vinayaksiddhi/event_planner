@@ -1,4 +1,4 @@
- import { useState } from "react";
+import { useState } from "react";
 import supabase from "../services/supabase";
 
 export default function CreateEvent() {
@@ -6,7 +6,7 @@ export default function CreateEvent() {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
-
+  const [maxParticipants, setMaxParticipants] = useState(50);
   const handleCreate = async () => {
     if (!title || !description || !date || !location) {
       alert("All fields required");
@@ -14,12 +14,14 @@ export default function CreateEvent() {
     }
 
     const { error } = await supabase.from("events").insert([
-      {
-        title,
-        description,
-        date,
-        location,
-      },
+  {
+    title,
+    description,
+    date,
+    location,
+    max_participants: maxParticipants,
+   },
+   
     ]);
 
     if (error) {
@@ -61,7 +63,12 @@ export default function CreateEvent() {
         value={location}
         onChange={(e) => setLocation(e.target.value)}
       />
-
+      <input
+        type="number"
+        placeholder="Max Participants"
+        value={maxParticipants}
+        onChange={(e) => setMaxParticipants(e.target.value)}
+      />
       <button onClick={handleCreate}>Create</button>
     </div>
   );

@@ -3,46 +3,82 @@ import supabase from "../services/supabase";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Events() {
-  const { user } = useContext(AuthContext);
+  const { user, role } = useContext(AuthContext);
 
   const [events, setEvents] = useState([]);
   const [registeredEvents, setRegisteredEvents] = useState([]);
+  const [allRegistrations, setAllRegistrations] = useState([]);
+  const [attendance, setAttendance] = useState([]);
 
   useEffect(() => {
     fetchEvents();
-    if (user) fetchRegistrations();
+    fetchAllRegistrations();
+    if (user) {
+      fetchRegistrations();
+      fetchAttendance();
+    }
   }, [user]);
 
-  // 🔥 Fetch all events
+  // 🔥 Fetch events
   const fetchEvents = async () => {
     const { data, error } = await supabase.from("events").select("*");
 
-    if (error) {
-      console.error("Error fetching events:", error);
-    } else {
-      setEvents(data);
-    }
+    if (error) console.error(error);
+    else setEvents(data || []);
   };
 
-  // 🔥 Fetch registered events for current user
+  // 🔥 Fetch ALL registrations (for count)
+  const fetchAllRegistrations = async () => {
+    const { data } = await supabase
+      .from("registrations")
+      .select("*");
+
+    setAllRegistrations(data || []);
+  };
+
+  // 🔥 Fetch MY registrations
   const fetchRegistrations = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("registrations")
       .select("event_id")
       .eq("user_id", user.id);
 
-    if (error) {
-      console.error("Error fetching registrations:", error);
-    } else {
-      const ids = data.map((r) => r.event_id);
-      setRegisteredEvents(ids);
-    }
+    const ids = data?.map((r) => r.event_id) || [];
+    setRegisteredEvents(ids);
   };
 
-  // 🔥 Register (SAFE — no duplicate)
+  // 🔥 Fetch attendance
+  const fetchAttendance = async () => {
+    const { data } = await supabase
+      .from("attendance")
+      .select("*")
+      .eq("user_id", user.id);
+
+    setAttendance(data || []);
+  };
+
+  // 🔥 Count participants
+  const getCount = (eventId) => {
+    return allRegistrations.filter(
+      (r) => r.event_id === eventId
+    ).length;
+  };
+
+  // 🔥 Status check
+  const getStatus = (eventId) => {
+    const isRegistered = registeredEvents.includes(eventId);
+    const isAttended = attendance.some(
+      (a) => a.event_id === eventId
+    );
+
+    if (isAttended) return "attended";
+    if (isRegistered) return "registered";
+    return "none";
+  };
+
+  // 🔥 Register
   const handleRegister = async (eventId) => {
     try {
-      // Check existing
       const { data: existing } = await supabase
         .from("registrations")
         .select("*")
@@ -54,7 +90,6 @@ export default function Events() {
         return;
       }
 
-      // Insert
       const { error } = await supabase.from("registrations").insert([
         {
           user_id: user.id,
@@ -68,42 +103,42 @@ export default function Events() {
       } else {
         alert("✅ Registered successfully");
         fetchRegistrations();
+        fetchAllRegistrations();
       }
     } catch (err) {
       console.error(err);
     }
   };
 
-  // 🔥 Exit event
+  // 🔥 Exit
   const handleExit = async (eventId) => {
-    try {
-      const { error } = await supabase
-        .from("registrations")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("event_id", eventId);
+    const { error } = await supabase
+      .from("registrations")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("event_id", eventId);
 
-      if (error) {
-        console.error(error);
-        alert("Error exiting event");
-      } else {
-        alert("❌ Exited event");
-        fetchRegistrations();
-      }
-    } catch (err) {
-      console.error(err);
+    if (error) {
+      console.error(error);
+      alert("Error exiting event");
+    } else {
+      alert("❌ Exited event");
+      fetchRegistrations();
+      fetchAllRegistrations();
     }
   };
 
   return (
     <div style={{ padding: "20px" }}>
-      <h2>Events</h2>
+      <h2>Events 🎉</h2>
 
       {events.length === 0 ? (
         <p>No events found</p>
       ) : (
         events.map((event) => {
-          const isRegistered = registeredEvents.includes(event.id);
+          const count = getCount(event.id);
+          const status = getStatus(event.id);
+          const isFull = count >= (event.max_participants || 50);
 
           return (
             <div
@@ -121,18 +156,36 @@ export default function Events() {
               <p><b>Date:</b> {event.date}</p>
               <p><b>Location:</b> {event.location}</p>
 
-              {user ? (
-                isRegistered ? (
+              {/* 👥 COUNT */}
+              <p>
+                👥 {count} / {event.max_participants || 50}
+              </p>
+
+              {/* 🔥 BUTTON LOGIC */}
+              {user && role !== "admin" ? (
+                status === "attended" ? (
+                  <button disabled style={{ background: "green", color: "white" }}>
+                    Attended ✅
+                  </button>
+                ) : status === "registered" ? (
                   <button onClick={() => handleExit(event.id)}>
-                    Exit Event ❌
+                    Exit ❌
+                  </button>
+                ) : isFull ? (
+                  <button disabled style={{ background: "gray" }}>
+                    Full 🚫
                   </button>
                 ) : (
                   <button onClick={() => handleRegister(event.id)}>
-                    Register ✅
+                    Register 🎯
                   </button>
                 )
               ) : (
-                <p style={{ color: "red" }}>Login to register</p>
+                <p style={{ color: "red" }}>
+                  {role === "admin"
+                    ? "Admin cannot register"
+                    : "Login to register"}
+                </p>
               )}
             </div>
           );
