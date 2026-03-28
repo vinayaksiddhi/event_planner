@@ -10,6 +10,16 @@ export default function Events() {
   const [allRegistrations, setAllRegistrations] = useState([]);
   const [attendance, setAttendance] = useState([]);
 
+  // 🔥 EDIT STATE
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [form, setForm] = useState({
+    title: "",
+    description: "",
+    date: "",
+    location: "",
+    max_participants: 50,
+  });
+
   useEffect(() => {
     fetchEvents();
     fetchAllRegistrations();
@@ -19,35 +29,25 @@ export default function Events() {
     }
   }, [user]);
 
-  // 🔥 Fetch events
   const fetchEvents = async () => {
-    const { data, error } = await supabase.from("events").select("*");
-
-    if (error) console.error(error);
-    else setEvents(data || []);
+    const { data } = await supabase.from("events").select("*");
+    setEvents(data || []);
   };
 
-  // 🔥 Fetch ALL registrations (for count)
   const fetchAllRegistrations = async () => {
-    const { data } = await supabase
-      .from("registrations")
-      .select("*");
-
+    const { data } = await supabase.from("registrations").select("*");
     setAllRegistrations(data || []);
   };
 
-  // 🔥 Fetch MY registrations
   const fetchRegistrations = async () => {
     const { data } = await supabase
       .from("registrations")
       .select("event_id")
       .eq("user_id", user.id);
 
-    const ids = data?.map((r) => r.event_id) || [];
-    setRegisteredEvents(ids);
+    setRegisteredEvents(data?.map((r) => r.event_id) || []);
   };
 
-  // 🔥 Fetch attendance
   const fetchAttendance = async () => {
     const { data } = await supabase
       .from("attendance")
@@ -57,85 +57,92 @@ export default function Events() {
     setAttendance(data || []);
   };
 
-  // 🔥 Count participants
   const getCount = (eventId) => {
-    return allRegistrations.filter(
-      (r) => r.event_id === eventId
-    ).length;
+    return allRegistrations.filter((r) => r.event_id === eventId).length;
   };
 
-  // 🔥 Status check
   const getStatus = (eventId) => {
     const isRegistered = registeredEvents.includes(eventId);
-    const isAttended = attendance.some(
-      (a) => a.event_id === eventId
-    );
+    const isAttended = attendance.some((a) => a.event_id === eventId);
 
     if (isAttended) return "attended";
     if (isRegistered) return "registered";
     return "none";
   };
 
-  // 🔥 Register
   const handleRegister = async (eventId) => {
-    try {
-      const { data: existing } = await supabase
-        .from("registrations")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("event_id", eventId);
+    const { data: existing } = await supabase
+      .from("registrations")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("event_id", eventId);
 
-      if (existing.length > 0) {
-        alert("Already registered");
-        return;
-      }
-
-      const { error } = await supabase.from("registrations").insert([
-        {
-          user_id: user.id,
-          event_id: eventId,
-        },
-      ]);
-
-      if (error) {
-        console.error(error);
-        alert("Error registering");
-      } else {
-        alert("✅ Registered successfully");
-        fetchRegistrations();
-        fetchAllRegistrations();
-      }
-    } catch (err) {
-      console.error(err);
+    if (existing.length > 0) {
+      alert("Already registered");
+      return;
     }
+
+    await supabase.from("registrations").insert([
+      { user_id: user.id, event_id: eventId },
+    ]);
+
+    alert("✅ Registered");
+    fetchRegistrations();
+    fetchAllRegistrations();
   };
 
-  // 🔥 Exit
   const handleExit = async (eventId) => {
-    const { error } = await supabase
+    await supabase
       .from("registrations")
       .delete()
       .eq("user_id", user.id)
       .eq("event_id", eventId);
 
-    if (error) {
-      console.error(error);
-      alert("Error exiting event");
-    } else {
-      alert("❌ Exited event");
-      fetchRegistrations();
-      fetchAllRegistrations();
-    }
+    alert("❌ Exited");
+    fetchRegistrations();
+    fetchAllRegistrations();
+  };
+
+  // 🔥 EDIT
+  const handleEdit = (event) => {
+    setEditingEvent(event);
+    setForm({
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      location: event.location,
+      max_participants: event.max_participants || 50,
+    });
+  };
+
+  const handleUpdate = async () => {
+    await supabase
+      .from("events")
+      .update(form)
+      .eq("id", editingEvent.id);
+
+    alert("✅ Updated");
+    setEditingEvent(null);
+    fetchEvents();
+  };
+
+  // 🔥 DELETE
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Delete this event?");
+    if (!confirmDelete) return;
+
+    await supabase.from("events").delete().eq("id", id);
+
+    alert("🗑️ Event deleted");
+    fetchEvents();
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Events 🎉</h2>
+    <div style={{ padding: "30px", background: "#0f172a", minHeight: "100vh", color: "white" }}>
+      <h2>🎉 Events</h2>
 
-      {events.length === 0 ? (
-        <p>No events found</p>
-      ) : (
-        events.map((event) => {
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+        {events.map((event) => {
           const count = getCount(event.id);
           const status = getStatus(event.id);
           const isFull = count >= (event.max_participants || 50);
@@ -144,39 +151,43 @@ export default function Events() {
             <div
               key={event.id}
               style={{
-                border: "1px solid gray",
-                padding: "15px",
-                margin: "10px",
-                borderRadius: "10px",
-                width: "300px",
+                background: "#1e293b",
+                borderRadius: "16px",
+                padding: "20px",
+                width: "280px",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
               }}
             >
               <h3>{event.title}</h3>
               <p>{event.description}</p>
-              <p><b>Date:</b> {event.date}</p>
-              <p><b>Location:</b> {event.location}</p>
 
-              {/* 👥 COUNT */}
-              <p>
-                👥 {count} / {event.max_participants || 50}
-              </p>
+              <p>📅 {event.date}</p>
+              <p>📍 {event.location}</p>
 
-              {/* 🔥 BUTTON LOGIC */}
+              <p>👥 {count} / {event.max_participants || 50}</p>
+
+              {/* USER BUTTON */}
               {user && role !== "admin" ? (
                 status === "attended" ? (
-                  <button disabled style={{ background: "green", color: "white" }}>
+                  <button style={{ width: "100%", background: "#0ea5e9" }}>
                     Attended ✅
                   </button>
                 ) : status === "registered" ? (
-                  <button onClick={() => handleExit(event.id)}>
+                  <button
+                    onClick={() => handleExit(event.id)}
+                    style={{ width: "100%", background: "#ef4444" }}
+                  >
                     Exit ❌
                   </button>
                 ) : isFull ? (
-                  <button disabled style={{ background: "gray" }}>
+                  <button style={{ width: "100%", background: "gray" }}>
                     Full 🚫
                   </button>
                 ) : (
-                  <button onClick={() => handleRegister(event.id)}>
+                  <button
+                    onClick={() => handleRegister(event.id)}
+                    style={{ width: "100%", background: "#22c55e" }}
+                  >
                     Register 🎯
                   </button>
                 )
@@ -187,9 +198,75 @@ export default function Events() {
                     : "Login to register"}
                 </p>
               )}
+
+              {/* 🔥 ADMIN ACTIONS */}
+              {role === "admin" && (
+                <>
+                  <button
+                    onClick={() => handleEdit(event)}
+                    style={{ width: "100%", marginTop: "10px", background: "#f59e0b" }}
+                  >
+                    Edit ✏️
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(event.id)}
+                    style={{ width: "100%", marginTop: "5px", background: "#dc2626" }}
+                  >
+                    Delete 🗑️
+                  </button>
+                </>
+              )}
             </div>
           );
-        })
+        })}
+      </div>
+
+      {/* 🔥 MODERN MODAL */}
+      {editingEvent && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              background: "#1e293b",
+              padding: "20px",
+              borderRadius: "12px",
+              width: "300px",
+              backdropFilter: "blur(10px)",
+            }}
+          >
+            <h3>Edit Event</h3>
+
+            <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+            <br /><br />
+
+            <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            <br /><br />
+
+            <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+            <br /><br />
+
+            <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+            <br /><br />
+
+            <input type="number" value={form.max_participants} onChange={(e) => setForm({ ...form, max_participants: e.target.value })} />
+            <br /><br />
+
+            <button onClick={handleUpdate}>Save ✅</button>
+            <button onClick={() => setEditingEvent(null)}>Cancel ❌</button>
+          </div>
+        </div>
       )}
     </div>
   );

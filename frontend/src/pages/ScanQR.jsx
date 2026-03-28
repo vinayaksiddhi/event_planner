@@ -1,9 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import supabase from "../services/supabase";
 
 export default function ScanQR() {
+  const scannerRef = useRef(null); // ✅ prevent duplicate scanner
+  const isScannedRef = useRef(false); // ✅ prevent multiple scans
+
   useEffect(() => {
+    // 🚫 Prevent double initialization (React Strict Mode fix)
+    if (scannerRef.current) return;
+
     const scanner = new Html5QrcodeScanner(
       "reader",
       {
@@ -13,20 +19,36 @@ export default function ScanQR() {
       false
     );
 
+    scannerRef.current = scanner;
+
     scanner.render(
       async (decodedText) => {
+        // 🚫 stop repeated scans
+        if (isScannedRef.current) return;
+        isScannedRef.current = true;
+
         console.log("Scanned:", decodedText);
 
         try {
-          // 🔥 Expected format: userId-eventId
-          const [user_id, event_id] = decodedText.split("-");
+          // 🔥 CLEAN INPUT
+          const cleanText = decodedText.trim();
+          const parts = cleanText.split("-");
 
-          if (!user_id || !event_id) {
-            alert("❌ Invalid QR Code");
+          if (parts.length !== 2) {
+            alert("❌ Invalid QR Format");
+            isScannedRef.current = false;
             return;
           }
 
-          // ✅ Insert or update (prevents duplicates)
+          const [user_id, event_id] = parts;
+
+          if (!user_id || !event_id) {
+            alert("❌ Invalid QR Data");
+            isScannedRef.current = false;
+            return;
+          }
+
+          // ✅ UPSERT (safe insert)
           const { error } = await supabase
             .from("attendance")
             .upsert(
@@ -42,22 +64,29 @@ export default function ScanQR() {
           if (error) {
             console.error(error);
             alert("❌ Error marking attendance");
+            isScannedRef.current = false;
           } else {
-            alert("✅ Attendance marked successfully!");
+            alert("✅ Attendance marked!");
+
+            // ✅ STOP SCANNER AFTER SUCCESS
+            scanner.clear().catch(() => {});
           }
         } catch (err) {
           console.error(err);
           alert("❌ Something went wrong");
+          isScannedRef.current = false;
         }
       },
-      (error) => {
+      () => {
         // ignore scan errors
-        // console.warn(error);
       }
     );
 
     return () => {
-      scanner.clear().catch(() => {});
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(() => {});
+        scannerRef.current = null;
+      }
     };
   }, []);
 
