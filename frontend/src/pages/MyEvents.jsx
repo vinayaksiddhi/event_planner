@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import supabase from "../services/supabase";
 import { AuthContext } from "../context/AuthContext";
-import { QRCodeCanvas } from "qrcode.react"; // ✅ CORRECT
+import { QRCodeCanvas } from "qrcode.react";
 
 export default function MyEvents() {
   const { user } = useContext(AuthContext);
@@ -49,37 +49,46 @@ export default function MyEvents() {
       {events.length === 0 ? (
         <p>No events joined yet</p>
       ) : (
-        events.map((event) => (
-          <div
-            key={event.id}
-            style={{
-              border: "1px solid gray",
-              padding: "15px",
-              margin: "10px",
-              borderRadius: "10px",
-              width: "300px",
-            }}
-          >
-            <h3>{event.title}</h3>
-            <p>{event.description}</p>
-            <p><b>Date:</b> {event.date}</p>
-            <p><b>Location:</b> {event.location}</p>
+        events.map((event) => {
+          // 🔥 SAFE EVENT NAME (no spaces)
+          const safeTitle = event.title.replace(/\s/g, "_");
 
-            {/* ✅ QR CODE */}
-            <QRCodeCanvas
-              id={`qr-${event.id}`}
-              value={`${user.id}-${event.id}`}
-              size={150}
-            />
+          // 🔥 FINAL QR VALUE
+          const qrValue = `${safeTitle}|${event.id}|${user.id}`;
 
-            <p>Scan for entry</p>
+          console.log("QR:", qrValue); // debug
 
-            {/* ✅ DOWNLOAD BUTTON */}
-            <button onClick={() => downloadQR(event.id)}>
-              Download QR ⬇️
-            </button>
-          </div>
-        ))
+          return (
+            <div
+              key={event.id}
+              style={{
+                border: "1px solid gray",
+                padding: "15px",
+                margin: "10px",
+                borderRadius: "10px",
+                width: "300px",
+              }}
+            >
+              <h3>{event.title}</h3>
+              <p>{event.description}</p>
+              <p><b>Date:</b> {event.date}</p>
+              <p><b>Location:</b> {event.location}</p>
+
+              {/* ✅ UPDATED QR */}
+              <QRCodeCanvas
+                id={`qr-${event.id}`}
+                value={qrValue}
+                size={150}
+              />
+
+              <p>Scan for entry</p>
+
+              <button onClick={() => downloadQR(event.id)}>
+                Download QR ⬇️
+              </button>
+            </div>
+          );
+        })
       )}
     </div>
   );

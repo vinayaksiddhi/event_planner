@@ -48,6 +48,10 @@ export default function Navbar() {
           <button onClick={() => navigate("/admin-certificates")}>
             Manage Certificates
           </button>
+          
+          <button onClick={() => navigate("/attendance")}>
+            Attendance
+          </button>
         </>
       )}
 

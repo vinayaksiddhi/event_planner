@@ -3,11 +3,10 @@ import { Html5QrcodeScanner } from "html5-qrcode";
 import supabase from "../services/supabase";
 
 export default function ScanQR() {
-  const scannerRef = useRef(null); // ✅ prevent duplicate scanner
-  const isScannedRef = useRef(false); // ✅ prevent multiple scans
+  const scannerRef = useRef(null);
+  const isScannedRef = useRef(false);
 
   useEffect(() => {
-    // 🚫 Prevent double initialization (React Strict Mode fix)
     if (scannerRef.current) return;
 
     const scanner = new Html5QrcodeScanner(
@@ -23,38 +22,42 @@ export default function ScanQR() {
 
     scanner.render(
       async (decodedText) => {
-        // 🚫 stop repeated scans
         if (isScannedRef.current) return;
         isScannedRef.current = true;
 
         console.log("Scanned:", decodedText);
 
         try {
-          // 🔥 CLEAN INPUT
           const cleanText = decodedText.trim();
-          const parts = cleanText.split("-");
 
-          if (parts.length !== 2) {
+          // 🔥 NEW FORMAT: eventName|eventId|userId
+          const parts = cleanText.split("|");
+
+          if (parts.length !== 3) {
             alert("❌ Invalid QR Format");
             isScannedRef.current = false;
             return;
           }
 
-          const [user_id, event_id] = parts;
+          const [event_name, event_id, user_id] = parts;
 
-          if (!user_id || !event_id) {
+          if (!event_id || !user_id) {
             alert("❌ Invalid QR Data");
             isScannedRef.current = false;
             return;
           }
 
-          // ✅ UPSERT (safe insert)
+          console.log("Event:", event_name);
+          console.log("Event ID:", event_id);
+          console.log("User ID:", user_id);
+
           const { error } = await supabase
             .from("attendance")
             .upsert(
               {
                 user_id,
                 event_id,
+                attended: true
               },
               {
                 onConflict: "user_id,event_id",
@@ -66,9 +69,8 @@ export default function ScanQR() {
             alert("❌ Error marking attendance");
             isScannedRef.current = false;
           } else {
-            alert("✅ Attendance marked!");
+            alert(`✅ Attendance marked for ${event_name}`);
 
-            // ✅ STOP SCANNER AFTER SUCCESS
             scanner.clear().catch(() => {});
           }
         } catch (err) {
@@ -77,9 +79,7 @@ export default function ScanQR() {
           isScannedRef.current = false;
         }
       },
-      () => {
-        // ignore scan errors
-      }
+      () => {}
     );
 
     return () => {
@@ -93,7 +93,6 @@ export default function ScanQR() {
   return (
     <div style={{ padding: "20px" }}>
       <h2>📷 Scan QR for Attendance</h2>
-
       <div id="reader" style={{ width: "300px" }}></div>
     </div>
   );

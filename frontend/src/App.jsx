@@ -11,6 +11,7 @@ import MyEvents from "./pages/MyEvents";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ScanQR from "./pages/ScanQR";
+import Attendance from "./pages/Attendance";
 
 // 🔥 Certificate Pages
 import UploadCertificate from "./pages/UploadCertificate";
@@ -141,6 +142,15 @@ function AppRoutes() {
           ) : (
             <Navigate to="/login" />
           )
+        }
+      />
+
+      <Route
+        path="/attendance"
+        element={
+          <AdminRoute>
+            <Attendance />
+          </AdminRoute>
         }
       />
 

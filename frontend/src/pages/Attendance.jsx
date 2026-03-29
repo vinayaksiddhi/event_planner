@@ -50,7 +50,7 @@ export default function Attendance() {
                 <td>{a.users?.college || "N/A"}</td>
                 <td>{a.events?.title || "N/A"}</td>
                 <td>
-                  {a.attended ? "✅ Present" : "❌ Absent"}
+                  {a.attended !== false ? "✅ Present" : "❌ Absent"}
                 </td>
               </tr>
             ))}
