@@ -1,85 +1,59 @@
-/* 🔥 GLOBAL */
+/* 🔥 BACKGROUND */
 body {
   margin: 0;
-  font-family: "Poppins", sans-serif;
-  background: #0f172a;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(to bottom right, #0f172a, #020617);
   color: white;
 }
 
-/* 🔥 CONTAINER */
-.container {
-  padding: 30px;
-}
-
-/* 🔥 GRID */
-.event-grid {
+/* 🔥 NAVBAR */
+.navbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-/* 🔥 CARD */
-.event-card {
-  background: linear-gradient(145deg, #1e293b, #0f172a);
-  border-radius: 16px;
-  padding: 20px;
-  width: 280px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  transition: 0.3s;
-}
-
-.event-card:hover {
-  transform: translateY(-5px) scale(1.02);
-}
-
-/* 🔥 TITLE */
-.event-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-
-/* 🔥 TEXT */
-.event-info {
-  font-size: 14px;
-  color: #cbd5f5;
-}
-
-/* 🔥 COUNT */
-.event-count {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #38bdf8;
+  justify-content: space-between;
+  padding: 15px 25px;
+  background: #111827;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 /* 🔥 BUTTON */
 .btn {
-  margin-top: 12px;
-  padding: 10px;
-  width: 100%;
+  padding: 8px 14px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
+  transition: 0.2s;
 }
 
-/* 🔥 BUTTON COLORS */
-.btn-register {
-  background: #22c55e;
-  color: white;
+.btn:hover {
+  transform: scale(1.05);
 }
 
-.btn-exit {
-  background: #ef4444;
-  color: white;
+/* COLORS */
+.btn-blue { background: #3b82f6; color: white; }
+.btn-green { background: #22c55e; color: white; }
+.btn-red { background: #ef4444; color: white; }
+.btn-yellow { background: #f59e0b; color: white; }
+.btn-gray { background: gray; color: white; }
+
+/* 🔥 EVENT CARD */
+.card {
+  background: #1e293b;
+  border-radius: 16px;
+  padding: 20px;
+  width: 280px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  transition: 0.3s;
 }
 
-.btn-full {
-  background: gray;
-  color: white;
+.card:hover {
+  transform: translateY(-6px);
 }
 
-.btn-attended {
-  background: #0ea5e9;
-  color: white;
+/* 🔥 GRID */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
 }
