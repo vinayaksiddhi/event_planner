@@ -13,62 +13,140 @@ export default function Navbar() {
   };
 
   return (
-    <div style={{ display: "flex", gap: "15px", padding: "10px" }}>
-      <h2 style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
-        Event Planner
+    <div
+      style={{
+        width: "100%",
+        padding: "12px 25px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "linear-gradient(to right, #1e3a8a, #2563eb)",
+        color: "white",
+        position: "sticky",
+        top: 0,
+        zIndex: 1000,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+      }}
+    >
+      {/* LOGO */}
+      <h2
+        style={{ cursor: "pointer", margin: 0 }}
+        onClick={() => navigate("/events")}
+      >
+        🎟️ Event Planner
       </h2>
 
-      {/* EVENTS ALWAYS */}
-      <button onClick={() => navigate("/events")}>Events</button>
+      {/* CENTER NAV */}
+      <div style={{ display: "flex", gap: "12px" }}>
+        <NavButton onClick={() => navigate("/events")}>
+          Events
+        </NavButton>
 
-      {/* 👤 USER ONLY */}
-      {user && role !== "admin" && (
-        <>
-          <button onClick={() => navigate("/my-events")}>
-            My Events
-          </button>
+        {/* USER */}
+        {user && role !== "admin" && (
+          <>
+            <NavButton onClick={() => navigate("/my-events")}>
+              My Events
+            </NavButton>
 
-          <button onClick={() => navigate("/certificates")}>
-            Certificates
-          </button>
-        </>
-      )}
+            <NavButton onClick={() => navigate("/certificates")}>
+              Certificates
+            </NavButton>
+          </>
+        )}
 
-      {/* 👨‍💼 ADMIN ONLY */}
-      {role === "admin" && (
-        <>
-          <button onClick={() => navigate("/create")}>
-            Create Event
-          </button>
+        {/* ADMIN */}
+        {role === "admin" && (
+          <>
+            <NavButton onClick={() => navigate("/create")}>
+              Create
+            </NavButton>
 
-          <button onClick={() => navigate("/scan")}>
-            Scan QR
-          </button>
+            <NavButton onClick={() => navigate("/scan")}>
+              Scan QR
+            </NavButton>
 
-          <button onClick={() => navigate("/admin-certificates")}>
-            Manage Certificates
-          </button>
-          
-          <button onClick={() => navigate("/attendance")}>
-            Attendance
-          </button>
-        </>
-      )}
+            <NavButton onClick={() => navigate("/admin-certificates")}>
+              Certificates
+            </NavButton>
 
-      {/* 🔐 AUTH */}
-      {user ? (
-        <>
-          <span>{user.email}</span>
-          <button onClick={handleLogout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <button onClick={() => navigate("/login")}>Login</button>
-          <button onClick={() => navigate("/register")}>
-            Register
-          </button>
-        </>
-      )}
+            <NavButton onClick={() => navigate("/attendance")}>
+              Attendance
+            </NavButton>
+          </>
+        )}
+      </div>
+
+      {/* RIGHT SIDE */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {user ? (
+          <>
+            <span style={{ fontSize: "14px" }}>{user.email}</span>
+
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "none",
+                background: "#ef4444",
+                color: "white",
+                cursor: "pointer",
+              }}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => navigate("/login")}
+              style={authBtn}
+            >
+              Login
+            </button>
+
+            <button
+              onClick={() => navigate("/register")}
+              style={{ ...authBtn, background: "#10b981" }}
+            >
+              Register
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
+
+/* 🔥 REUSABLE NAV BUTTON */
+function NavButton({ children, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        background: "rgba(255,255,255,0.2)",
+        border: "none",
+        padding: "8px 12px",
+        borderRadius: "8px",
+        color: "white",
+        cursor: "pointer",
+        transition: "0.2s",
+      }}
+      onMouseOver={(e) => (e.target.style.background = "rgba(255,255,255,0.35)")}
+      onMouseOut={(e) => (e.target.style.background = "rgba(255,255,255,0.2)")}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* 🔐 AUTH BUTTON */
+const authBtn = {
+  padding: "6px 12px",
+  borderRadius: "6px",
+  border: "none",
+  background: "#3b82f6",
+  color: "white",
+  cursor: "pointer",
+};

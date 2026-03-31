@@ -28,6 +28,7 @@ export default function Events() {
     }
   }, [user]);
 
+  // ================= FETCH =================
   const fetchEvents = async () => {
     const { data } = await supabase.from("events").select("*");
     setEvents(data || []);
@@ -56,19 +57,17 @@ export default function Events() {
     setAttendance(data || []);
   };
 
-  const getCount = (eventId) => {
-    return allRegistrations.filter((r) => r.event_id === eventId).length;
-  };
+  // ================= LOGIC =================
+  const getCount = (eventId) =>
+    allRegistrations.filter((r) => r.event_id === eventId).length;
 
   const getStatus = (eventId) => {
-    const isRegistered = registeredEvents.includes(eventId);
-    const isAttended = attendance.some((a) => a.event_id === eventId);
-
-    if (isAttended) return "attended";
-    if (isRegistered) return "registered";
+    if (attendance.some((a) => a.event_id === eventId)) return "attended";
+    if (registeredEvents.includes(eventId)) return "registered";
     return "none";
   };
 
+  // ================= ACTIONS =================
   const handleRegister = async (eventId) => {
     const { data: existing } = await supabase
       .from("registrations")
@@ -121,7 +120,7 @@ export default function Events() {
     fetchEvents();
   };
 
-  // 🎨 REAL IMAGES ARRAY
+  // ================= IMAGES =================
   const images = [
     "https://images.unsplash.com/photo-1511578314322-379afb476865",
     "https://images.unsplash.com/photo-1503428593586-e225b39bddfe",
@@ -131,46 +130,77 @@ export default function Events() {
   ];
 
   return (
-    <div style={{ padding: "30px", background: "#f1f5f9", minHeight: "100vh" }}>
-      <h2 style={{ textAlign: "center", color: "#1e3a8a" }}>
-        🎉 Events
-      </h2>
+    <div style={{ background: "#f8fafc", minHeight: "100vh" }}>
+      
+      {/* HERO */}
+      <div
+        style={{
+          height: "220px",
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "white",
+          fontSize: "30px",
+          fontWeight: "bold",
+        }}
+      >
+        Explore Events Near You 🚀
+      </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", justifyContent: "center" }}>
+      {/* TITLE */}
+      <div style={{ textAlign: "center", padding: "20px" }}>
+        <h2>🎉 Events</h2>
+        <p style={{ color: "#64748b" }}>
+          Discover amazing events happening around you 🎟️
+        </p>
+      </div>
+
+      {/* CARDS */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "25px",
+          justifyContent: "center",
+          padding: "20px",
+        }}
+      >
         {events.map((event, index) => {
           const count = getCount(event.id);
           const status = getStatus(event.id);
           const isFull = count >= (event.max_participants || 50);
 
-          const image = images[index % images.length];
-
           return (
             <div
               key={event.id}
               style={{
-                background: "white",
-                borderRadius: "16px",
                 width: "300px",
+                borderRadius: "16px",
                 overflow: "hidden",
-                boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
+                background: "white",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
               }}
             >
               {/* IMAGE */}
               <img
-                src={image}
-                alt="event"
+                src={images[index % images.length]}
                 style={{ width: "100%", height: "180px", objectFit: "cover" }}
               />
 
+              {/* CONTENT */}
               <div style={{ padding: "15px" }}>
                 <h3>{event.title}</h3>
-                <p>{event.description}</p>
+                <p style={{ color: "#475569" }}>{event.description}</p>
 
                 <p>📅 {event.date}</p>
                 <p>📍 {event.location}</p>
+                <p><b>👥 {count} / {event.max_participants || 50}</b></p>
 
-                <p>👥 {count} / {event.max_participants || 50}</p>
-
+                {/* USER */}
                 {user && role !== "admin" ? (
                   status === "attended" ? (
                     <button style={btnBlue}>Attended ✅</button>
@@ -193,6 +223,7 @@ export default function Events() {
                   </p>
                 )}
 
+                {/* ADMIN */}
                 {role === "admin" && (
                   <>
                     <button style={btnYellow} onClick={() => handleEdit(event)}>
@@ -239,7 +270,7 @@ export default function Events() {
   );
 }
 
-// 🎨 BUTTON STYLES
+// BUTTONS
 const btnGreen = { width: "100%", background: "#10b981", color: "white", padding: "10px", borderRadius: "8px" };
 const btnRed = { width: "100%", background: "#ef4444", color: "white", padding: "10px", borderRadius: "8px", marginTop: "5px" };
 const btnBlue = { width: "100%", background: "#3b82f6", color: "white", padding: "10px", borderRadius: "8px" };
