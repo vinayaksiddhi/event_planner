@@ -1,19 +1,24 @@
 import { useEffect, useState, useContext } from "react";
-import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
+import supabase from "../services/supabase";
 
 export default function Certificates() {
   const { user } = useContext(AuthContext);
   const [certs, setCerts] = useState([]);
 
   useEffect(() => {
-    if (!user) return;
-
-    axios
-      .get(`http://localhost:5000/api/certificates/user/${user.email}`)
-      .then((res) => setCerts(res.data))
-      .catch((err) => console.error(err));
+    if (user) fetchCertificates();
   }, [user]);
+
+  const fetchCertificates = async () => {
+    const { data, error } = await supabase
+      .from("certificates")
+      .select("*")
+      .eq("email", user.email);
+
+    if (error) console.error(error);
+    else setCerts(data);
+  };
 
   return (
     <div style={page}>
@@ -24,20 +29,18 @@ export default function Certificates() {
       ) : (
         <div style={grid}>
           {certs.map((c) => (
-            <div key={c._id} style={card}>
-              {/* 🔥 SHOW EVENT ID OR NAME */}
-              <h3 style={eventTitle}>{c.eventId}</h3>
+            <div key={c.id} style={card}>
+              <h3 style={eventTitle}>{c.event_id}</h3>
 
               <p style={desc}>Certificate Available</p>
 
-              {/* ✅ FIXED LINK */}
               <a
-                href={c.file}
+                href={c.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={btn}
               >
-                View / Download ⬇️
+                View ⬇️
               </a>
             </div>
           ))}

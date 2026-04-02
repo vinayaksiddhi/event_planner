@@ -4,11 +4,13 @@ const router = express.Router();
 const Certificate = require("../models/Certificate");
 
 // ==============================
-// 📤 UPLOAD CERTIFICATE (UPDATED)
+// 📤 UPLOAD CERTIFICATE
 // ==============================
 router.post("/upload", async (req, res) => {
   try {
     const { email, eventId, file } = req.body;
+
+    console.log("BODY:", req.body); // 🔥 DEBUG
 
     if (!email || !eventId || !file) {
       return res.status(400).json({ message: "Missing fields" });
@@ -17,7 +19,7 @@ router.post("/upload", async (req, res) => {
     const cert = new Certificate({
       email,
       eventId,
-      file, // 🔥 now storing URL
+      file,
     });
 
     await cert.save();
@@ -37,7 +39,7 @@ router.post("/upload", async (req, res) => {
 // ==============================
 router.get("/", async (req, res) => {
   try {
-    const certs = await Certificate.find().sort({ date: -1 });
+    const certs = await Certificate.find().sort({ createdAt: -1 });
     res.json(certs);
   } catch (err) {
     res.status(500).json({ message: "Error fetching" });

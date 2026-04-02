@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import supabase from "../services/supabase";
 
 export default function UploadCertificate() {
@@ -9,7 +8,7 @@ export default function UploadCertificate() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔥 FETCH EVENTS
+  // 🔥 Fetch Events
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -24,7 +23,7 @@ export default function UploadCertificate() {
     }
   };
 
-  // 🔥 FINAL UPLOAD FUNCTION (SUPABASE STORAGE)
+  // 🔥 FINAL UPLOAD FUNCTION
   const handleUpload = async () => {
     if (!file || !email || !eventId) {
       alert("All fields required");
@@ -34,46 +33,54 @@ export default function UploadCertificate() {
     try {
       setLoading(true);
 
-      // 🔥 unique file name
-      const fileName = `${Date.now()}-${file.name}`;
+      // ✅ Clean filename
+      const cleanName = file.name.replace(/\s/g, "_");
+      const fileName = `${Date.now()}-${cleanName}`;
 
-      // 🔥 upload to Supabase Storage
+      // ✅ Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("certificates")
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          contentType: file.type,
+        });
 
       if (uploadError) {
         console.error(uploadError);
-        alert("❌ Upload to storage failed");
-        setLoading(false);
+        alert(uploadError.message);
         return;
       }
 
-      // 🔥 get public URL
-      const { data: publicUrlData } = supabase.storage
+      // ✅ Get Public URL
+      const { data: publicData } = supabase.storage
         .from("certificates")
         .getPublicUrl(fileName);
 
-      const fileUrl = publicUrlData.publicUrl;
+      const fileUrl = publicData.publicUrl;
 
-      console.log("File URL:", fileUrl);
+      console.log("Uploaded URL:", fileUrl);
 
-      // 🔥 send URL to backend (NOT file anymore)
-      await axios.post(
-        "http://localhost:5000/api/certificates/upload",
+      // ✅ Save in Supabase DB
+      const { error: dbError } = await supabase.from("certificates").insert([
         {
           email,
-          eventId,
-          file: fileUrl,
-        }
-      );
+          event_id: eventId,
+          file_url: fileUrl,
+        },
+      ]);
 
-      alert("✅ Certificate uploaded");
+      if (dbError) {
+        console.error(dbError);
+        alert("Database error");
+        return;
+      }
 
-      // reset
+      alert("✅ Certificate uploaded successfully");
+
+      // 🔄 Reset
       setFile(null);
       setEmail("");
       setEventId("");
+
     } catch (err) {
       console.error(err);
       alert("❌ Upload failed");
@@ -109,7 +116,7 @@ export default function UploadCertificate() {
           ))}
         </select>
 
-        {/* FILE */}
+        {/* FILE INPUT */}
         <input
           style={input}
           type="file"
