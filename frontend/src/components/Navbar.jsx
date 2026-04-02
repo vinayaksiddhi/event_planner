@@ -13,31 +13,14 @@ export default function Navbar() {
   };
 
   return (
-    <div
-      style={{
-        width: "100%",
-        padding: "12px 25px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        background: "linear-gradient(to right, #1e3a8a, #2563eb)",
-        color: "white",
-        position: "sticky",
-        top: 0,
-        zIndex: 1000,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-      }}
-    >
+    <div style={navbar}>
       {/* LOGO */}
-      <h2
-        style={{ cursor: "pointer", margin: 0 }}
-        onClick={() => navigate("/events")}
-      >
+      <div style={logo} onClick={() => navigate("/events")}>
         🎟️ Event Planner
-      </h2>
+      </div>
 
       {/* CENTER NAV */}
-      <div style={{ display: "flex", gap: "12px" }}>
+      <div style={navCenter}>
         <NavButton onClick={() => navigate("/events")}>
           Events
         </NavButton>
@@ -53,7 +36,6 @@ export default function Navbar() {
               Certificates
             </NavButton>
 
-            {/* ✅ ADD THIS */}
             <NavButton onClick={() => navigate("/profile")}>
               Profile
             </NavButton>
@@ -71,10 +53,13 @@ export default function Navbar() {
               Scan QR
             </NavButton>
 
-            <NavButton onClick={() => navigate("/admin-certificates")}>
-              Certificates
+            <NavButton onClick={() => navigate("/upload-certificate")}>
+              Upload Cert
             </NavButton>
 
+            <NavButton onClick={() => navigate("/admin-certificates")}>
+              All Certificates
+            </NavButton>
             <NavButton onClick={() => navigate("/attendance")}>
               Attendance
             </NavButton>
@@ -83,38 +68,22 @@ export default function Navbar() {
       </div>
 
       {/* RIGHT SIDE */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+      <div style={navRight}>
         {user ? (
           <>
-            <span style={{ fontSize: "14px" }}>{user.email}</span>
+            <span style={email}>{user.email}</span>
 
-            <button
-              onClick={handleLogout}
-              style={{
-                padding: "6px 12px",
-                borderRadius: "6px",
-                border: "none",
-                background: "#ef4444",
-                color: "white",
-                cursor: "pointer",
-              }}
-            >
+            <button onClick={handleLogout} style={logoutBtn}>
               Logout
             </button>
           </>
         ) : (
           <>
-            <button
-              onClick={() => navigate("/login")}
-              style={authBtn}
-            >
+            <button onClick={() => navigate("/login")} style={loginBtn}>
               Login
             </button>
 
-            <button
-              onClick={() => navigate("/register")}
-              style={{ ...authBtn, background: "#10b981" }}
-            >
+            <button onClick={() => navigate("/register")} style={registerBtn}>
               Register
             </button>
           </>
@@ -124,34 +93,103 @@ export default function Navbar() {
   );
 }
 
-/* 🔥 REUSABLE NAV BUTTON */
+/* 🔥 NAVBAR STYLE */
+const navbar = {
+  width: "100%",
+  height: "70px",
+  padding: "0 20px", // ✅ FIXED (no overflow)
+  boxSizing: "border-box", // ✅ VERY IMPORTANT
+  overflowX: "hidden", // extra safety
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  position: "sticky",
+  top: 0,
+  zIndex: 1000,
+  backdropFilter: "blur(10px)",
+  background: "linear-gradient(to right, #1e3a8a, #2563eb)",
+  boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
+};
+
+/* LOGO */
+const logo = {
+  fontSize: "20px",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
+
+/* CENTER NAV */
+const navCenter = {
+  display: "flex",
+  gap: "12px",
+};
+
+/* RIGHT SIDE */
+const navRight = {
+  display: "flex",
+  alignItems: "center",
+  gap: "8px", // ✅ tighter spacing
+};
+
+/* EMAIL */
+const email = {
+  fontSize: "13px",
+  opacity: 0.9,
+};
+
+/* NAV BUTTON */
 function NavButton({ children, onClick }) {
   return (
     <button
       onClick={onClick}
-      style={{
-        background: "rgba(255,255,255,0.2)",
-        border: "none",
-        padding: "8px 12px",
-        borderRadius: "8px",
-        color: "white",
-        cursor: "pointer",
-        transition: "0.2s",
-      }}
-      onMouseOver={(e) => (e.target.style.background = "rgba(255,255,255,0.35)")}
-      onMouseOut={(e) => (e.target.style.background = "rgba(255,255,255,0.2)")}
+      style={navBtn}
+      onMouseEnter={(e) =>
+        (e.target.style.background = "rgba(255,255,255,0.35)")
+      }
+      onMouseLeave={(e) =>
+        (e.target.style.background = "rgba(255,255,255,0.2)")
+      }
     >
       {children}
     </button>
   );
 }
 
-/* 🔐 AUTH BUTTON */
-const authBtn = {
+const navBtn = {
+  background: "rgba(255,255,255,0.2)",
+  border: "none",
+  padding: "8px 14px",
+  borderRadius: "10px",
+  color: "white",
+  cursor: "pointer",
+  transition: "0.3s",
+  fontWeight: "500",
+};
+
+/* BUTTONS */
+const loginBtn = {
   padding: "6px 12px",
-  borderRadius: "6px",
+  borderRadius: "8px",
   border: "none",
   background: "#3b82f6",
+  color: "white",
+  cursor: "pointer",
+};
+
+const registerBtn = {
+  padding: "6px 12px",
+  borderRadius: "8px",
+  border: "none",
+  background: "#22c55e",
+  color: "white",
+  cursor: "pointer",
+};
+
+const logoutBtn = {
+  padding: "6px 12px",
+  borderRadius: "8px",
+  border: "none",
+  background: "#ef4444",
   color: "white",
   cursor: "pointer",
 };

@@ -11,7 +11,6 @@ export default function Profile() {
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
   const [year, setYear] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -61,61 +60,128 @@ export default function Profile() {
   };
 
   return (
-    <div style={{ padding: "20px", maxWidth: "400px" }}>
-      <h2>Profile 👤</h2>
+    <div style={page}>
+      <div style={card}>
+        <h2 style={title}>👤 Profile</h2>
 
-      <p><b>Email:</b> {user?.email}</p>
-      <p><b>Role:</b> {role}</p>
+        {/* USER INFO */}
+        <div style={infoBox}>
+          <p><b>Email:</b> {user?.email}</p>
+          <p><b>Role:</b> {role}</p>
+        </div>
 
-      <br />
+        {/* FORM */}
+        <div style={form}>
+          <input
+            style={input}
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-      <input
-        placeholder="Full Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <br /><br />
+          <input
+            style={input}
+            placeholder="College"
+            value={college}
+            onChange={(e) => setCollege(e.target.value)}
+          />
 
-      <input
-        placeholder="College"
-        value={college}
-        onChange={(e) => setCollege(e.target.value)}
-      />
-      <br /><br />
+          <input
+            style={input}
+            type="date"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+          />
 
-      <input
-        type="date"
-        value={dob}
-        onChange={(e) => setDob(e.target.value)}
-      />
-      <br /><br />
+          <input
+            style={input}
+            placeholder="Phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
 
-      <input
-        placeholder="Phone"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
-      <br /><br />
+          <select
+            style={input}
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+          >
+            <option value="">Select Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
 
-      <select onChange={(e) => setGender(e.target.value)} value={gender}>
-        <option value="">Select Gender</option>
-        <option>Male</option>
-        <option>Female</option>
-      </select>
-      <br /><br />
+          <select
+            style={input}
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+          >
+            <option value="">Year</option>
+            <option>1st Year</option>
+            <option>2nd Year</option>
+            <option>3rd Year</option>
+            <option>4th Year</option>
+          </select>
+        </div>
 
-      <select onChange={(e) => setYear(e.target.value)} value={year}>
-        <option value="">Year</option>
-        <option>1st Year</option>
-        <option>2nd Year</option>
-        <option>3rd Year</option>
-        <option>4th Year</option>
-      </select>
-      <br /><br />
-
-      <button onClick={handleSave} disabled={loading}>
-        {loading ? "Saving..." : "Save Profile"}
-      </button>
+        <button onClick={handleSave} style={btn}>
+          {loading ? "Saving..." : "Save Profile"}
+        </button>
+      </div>
     </div>
   );
 }
+
+/* 🔥 STYLES */
+
+const page = {
+  minHeight: "calc(100vh - 70px)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  background: "linear-gradient(to right, #e0f2fe, #f8fafc)",
+};
+
+const card = {
+  width: "360px",
+  background: "white",
+  borderRadius: "20px",
+  padding: "25px",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+};
+
+const title = {
+  textAlign: "center",
+  marginBottom: "15px",
+};
+
+const infoBox = {
+  fontSize: "14px",
+  marginBottom: "15px",
+  padding: "10px",
+  background: "#f1f5f9",
+  borderRadius: "10px",
+};
+
+const form = {
+  display: "flex",
+  flexDirection: "column",
+};
+
+const input = {
+  padding: "10px",
+  marginBottom: "10px",
+  borderRadius: "10px",
+  border: "1px solid #ccc",
+};
+
+const btn = {
+  marginTop: "10px",
+  width: "100%",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "none",
+  background: "linear-gradient(to right, #22c55e, #4ade80)",
+  color: "white",
+  fontWeight: "bold",
+  cursor: "pointer",
+};

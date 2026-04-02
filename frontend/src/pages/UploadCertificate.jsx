@@ -1,32 +1,76 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import supabase from "../services/supabase";
 
 export default function UploadCertificate() {
   const [file, setFile] = useState(null);
   const [email, setEmail] = useState("");
   const [eventId, setEventId] = useState("");
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // 🔥 FETCH EVENTS
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    const { data, error } = await supabase.from("events").select("*");
+
+    if (error) {
+      console.error(error);
+    } else {
+      setEvents(data);
+    }
+  };
+
+  // 🔥 FINAL UPLOAD FUNCTION (SUPABASE STORAGE)
   const handleUpload = async () => {
     if (!file || !email || !eventId) {
       alert("All fields required");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("email", email);
-    formData.append("eventId", eventId);
-
     try {
       setLoading(true);
 
+      // 🔥 unique file name
+      const fileName = `${Date.now()}-${file.name}`;
+
+      // 🔥 upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("certificates")
+        .upload(fileName, file);
+
+      if (uploadError) {
+        console.error(uploadError);
+        alert("❌ Upload to storage failed");
+        setLoading(false);
+        return;
+      }
+
+      // 🔥 get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from("certificates")
+        .getPublicUrl(fileName);
+
+      const fileUrl = publicUrlData.publicUrl;
+
+      console.log("File URL:", fileUrl);
+
+      // 🔥 send URL to backend (NOT file anymore)
       await axios.post(
         "http://localhost:5000/api/certificates/upload",
-        formData
+        {
+          email,
+          eventId,
+          file: fileUrl,
+        }
       );
 
       alert("✅ Certificate uploaded");
+
+      // reset
       setFile(null);
       setEmail("");
       setEventId("");
@@ -39,26 +83,95 @@ export default function UploadCertificate() {
   };
 
   return (
-    <div>
-      <h2>Upload Certificate</h2>
+    <div style={page}>
+      <div style={card}>
+        <h2 style={title}>🎓 Upload Certificate</h2>
 
-      <input
-        placeholder="User Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        {/* EMAIL */}
+        <input
+          style={input}
+          placeholder="User Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <input
-        placeholder="Event ID"
-        value={eventId}
-        onChange={(e) => setEventId(e.target.value)}
-      />
+        {/* EVENT DROPDOWN */}
+        <select
+          style={input}
+          value={eventId}
+          onChange={(e) => setEventId(e.target.value)}
+        >
+          <option value="">Select Event</option>
+          {events.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.title} ({e.date})
+            </option>
+          ))}
+        </select>
 
-      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+        {/* FILE */}
+        <input
+          style={input}
+          type="file"
+          onChange={(e) => setFile(e.target.files[0])}
+        />
 
-      <button onClick={handleUpload} disabled={loading}>
-        {loading ? "Uploading..." : "Upload"}
-      </button>
+        {/* FILE NAME */}
+        {file && <p style={fileText}>📄 {file.name}</p>}
+
+        {/* BUTTON */}
+        <button onClick={handleUpload} style={btn} disabled={loading}>
+          {loading ? "Uploading..." : "Upload"}
+        </button>
+      </div>
     </div>
   );
 }
+
+/* 🔥 STYLES */
+
+const page = {
+  minHeight: "calc(100vh - 70px)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  background: "linear-gradient(to right, #e0f2fe, #f8fafc)",
+};
+
+const card = {
+  width: "360px",
+  background: "white",
+  padding: "25px",
+  borderRadius: "20px",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+};
+
+const title = {
+  textAlign: "center",
+  marginBottom: "15px",
+};
+
+const input = {
+  width: "100%",
+  padding: "10px",
+  marginBottom: "12px",
+  borderRadius: "10px",
+  border: "1px solid #ccc",
+};
+
+const fileText = {
+  fontSize: "13px",
+  color: "#64748b",
+  marginBottom: "10px",
+};
+
+const btn = {
+  width: "100%",
+  padding: "12px",
+  borderRadius: "10px",
+  border: "none",
+  background: "linear-gradient(to right, #22c55e, #4ade80)",
+  color: "white",
+  fontWeight: "bold",
+  cursor: "pointer",
+};

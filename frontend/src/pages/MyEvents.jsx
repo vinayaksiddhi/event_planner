@@ -29,7 +29,6 @@ export default function MyEvents() {
     setEvents(eventList);
   };
 
-  // 🔥 DOWNLOAD QR FUNCTION
   const downloadQR = (eventId) => {
     const canvas = document.getElementById(`qr-${eventId}`);
     if (!canvas) return;
@@ -43,53 +42,120 @@ export default function MyEvents() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>My Events 🎟️</h2>
+    <div style={page}>
+      <h2 style={title}>🎟️ My Events</h2>
 
       {events.length === 0 ? (
-        <p>No events joined yet</p>
+        <p style={{ textAlign: "center" }}>No events joined yet</p>
       ) : (
-        events.map((event) => {
-          // 🔥 SAFE EVENT NAME (no spaces)
-          const safeTitle = event.title.replace(/\s/g, "_");
+        <div style={grid}>
+          {events.map((event) => {
+            const safeTitle = event.title.replace(/\s/g, "_");
+            const qrValue = `${safeTitle}|${event.id}|${user.id}`;
 
-          // 🔥 FINAL QR VALUE
-          const qrValue = `${safeTitle}|${event.id}|${user.id}`;
+            return (
+              <div key={event.id} style={card}>
+                <h3 style={eventTitle}>{event.title}</h3>
 
-          console.log("QR:", qrValue); // debug
+                <p style={desc}>{event.description}</p>
 
-          return (
-            <div
-              key={event.id}
-              style={{
-                border: "1px solid gray",
-                padding: "15px",
-                margin: "10px",
-                borderRadius: "10px",
-                width: "300px",
-              }}
-            >
-              <h3>{event.title}</h3>
-              <p>{event.description}</p>
-              <p><b>Date:</b> {event.date}</p>
-              <p><b>Location:</b> {event.location}</p>
+                <div style={info}>
+                  <p>📅 {event.date}</p>
+                  <p>📍 {event.location}</p>
+                </div>
 
-              {/* ✅ UPDATED QR */}
-              <QRCodeCanvas
-                id={`qr-${event.id}`}
-                value={qrValue}
-                size={150}
-              />
+                <div style={qrBox}>
+                  <QRCodeCanvas
+                    id={`qr-${event.id}`}
+                    value={qrValue}
+                    size={140}
+                  />
+                </div>
 
-              <p>Scan for entry</p>
+                <p style={scanText}>Scan for entry</p>
 
-              <button onClick={() => downloadQR(event.id)}>
-                Download QR ⬇️
-              </button>
-            </div>
-          );
-        })
+                <button
+                  onClick={() => downloadQR(event.id)}
+                  style={btn}
+                >
+                  Download QR ⬇️
+                </button>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
 }
+
+/* 🔥 STYLES */
+
+const page = {
+  minHeight: "calc(100vh - 70px)",
+  padding: "30px",
+  background: "linear-gradient(to right, #e0f2fe, #f0f9ff)",
+};
+
+const title = {
+  textAlign: "center",
+  marginBottom: "30px",
+  fontSize: "28px",
+  color: "#2563eb", 
+};
+
+const grid = {
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  gap: "25px",
+};
+
+const card = {
+  width: "280px",
+  background: "white",
+  borderRadius: "16px",
+  padding: "20px",
+  boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+  textAlign: "center",
+  transition: "0.3s",
+};
+
+const eventTitle = {
+  fontSize: "18px",
+  fontWeight: "bold",
+  marginBottom: "8px",
+};
+
+const desc = {
+  fontSize: "14px",
+  color: "#555",
+};
+
+const info = {
+  fontSize: "13px",
+  marginTop: "10px",
+  marginBottom: "10px",
+};
+
+const qrBox = {
+  margin: "15px 0",
+  display: "flex",
+  justifyContent: "center",
+};
+
+const scanText = {
+  fontSize: "13px",
+  color: "#64748b",
+};
+
+const btn = {
+  marginTop: "10px",
+  width: "100%",
+  padding: "10px",
+  borderRadius: "10px",
+  border: "none",
+  background: "linear-gradient(to right, #3b82f6, #6366f1)",
+  color: "white",
+  cursor: "pointer",
+};

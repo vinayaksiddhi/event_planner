@@ -1,65 +1,23 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const path = require("path");
 
 const Certificate = require("../models/Certificate");
 
 // ==============================
-// 📦 STORAGE CONFIG
+// 📤 UPLOAD CERTIFICATE (UPDATED)
 // ==============================
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9);
-
-    cb(null, uniqueName + path.extname(file.originalname));
-  },
-});
-
-// ==============================
-// 📁 FILE FILTER
-// ==============================
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = [
-    "application/pdf",
-    "image/png",
-    "image/jpeg",
-  ];
-
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only PDF/Image allowed"), false);
-  }
-};
-
-// ==============================
-// 🚀 MULTER SETUP
-// ==============================
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-});
-
-// ==============================
-// 📤 UPLOAD CERTIFICATE
-// ==============================
-router.post("/upload", upload.single("file"), async (req, res) => {
+router.post("/upload", async (req, res) => {
   try {
-    const { email, eventId } = req.body;
+    const { email, eventId, file } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    if (!email || !eventId || !file) {
+      return res.status(400).json({ message: "Missing fields" });
     }
 
     const cert = new Certificate({
       email,
       eventId,
-      file: req.file.filename,
+      file, // 🔥 now storing URL
     });
 
     await cert.save();

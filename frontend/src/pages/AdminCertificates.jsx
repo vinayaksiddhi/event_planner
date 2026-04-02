@@ -48,7 +48,7 @@ export default function AdminCertificates() {
               <td>{c.eventId}</td>
               <td>
                 <a
-                  href={`http://localhost:5000/uploads/${c.file}`}
+                 href={cert.file}
                   download
                 >
                   Download
