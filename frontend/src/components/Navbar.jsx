@@ -52,6 +52,11 @@ export default function Navbar() {
             <NavButton onClick={() => navigate("/certificates")}>
               Certificates
             </NavButton>
+
+            {/* ✅ ADD THIS */}
+            <NavButton onClick={() => navigate("/profile")}>
+              Profile
+            </NavButton>
           </>
         )}
 

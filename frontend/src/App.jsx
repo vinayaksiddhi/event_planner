@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ScanQR from "./pages/ScanQR";
 import Attendance from "./pages/Attendance";
+import Profile from "./pages/Profile";
 
 // 🔥 Certificate Pages
 import UploadCertificate from "./pages/UploadCertificate";
@@ -156,7 +157,16 @@ function AppRoutes() {
 
       {/* ================= FALLBACK ================= */}
       <Route path="*" element={<h2>Page Not Found ❌</h2>} />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
+
   );
 }
 
