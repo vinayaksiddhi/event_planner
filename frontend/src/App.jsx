@@ -13,6 +13,9 @@ import Register from "./pages/Register";
 import ScanQR from "./pages/ScanQR";
 import Attendance from "./pages/Attendance";
 import Profile from "./pages/Profile";
+import UploadEventPhotos from "./pages/UploadEventPhotos";
+import Photos from "./pages/Photos";
+import Home from "./pages/Home";
 
 // 🔥 Certificate Pages
 import UploadCertificate from "./pages/UploadCertificate";
@@ -32,12 +35,11 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* ================= PUBLIC ROUTES ================= */}
-      <Route path="/" element={<Events />} />
-      <Route path="/events" element={<Events />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-
+       {/* ================= PUBLIC ROUTES ================= */}
+  <Route path="/" element={<Home />} />
+  <Route path="/events" element={<Events />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
       {/* ================= USER ROUTES ================= */}
 
       {/* 🔥 My Events (BLOCK ADMIN) */}
@@ -162,6 +164,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/upload-photos"
+        element={
+          <AdminRoute>
+            <UploadEventPhotos />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/photos"
+        element={
+          <ProtectedRoute>
+            <Photos />
           </ProtectedRoute>
         }
       />
