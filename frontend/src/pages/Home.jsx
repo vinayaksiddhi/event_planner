@@ -1,229 +1,197 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import PageWrapper from "../components/PageWrapper";
 
 export default function Home() {
   const navigate = useNavigate();
 
-  // 🔥 Cursor Glow Effect
-  useEffect(() => {
-    const move = (e) => {
-      const glow = document.getElementById("cursorGlow");
-      if (glow) {
-        glow.style.left = e.clientX + "px";
-        glow.style.top = e.clientY + "px";
-      }
-    };
-    window.addEventListener("mousemove", move);
-    return () => window.removeEventListener("mousemove", move);
-  }, []);
+  const { scrollY } = useScroll();
+
+  const scale = useTransform(scrollY, [0, 300], [1, 0.85]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+  const y = useTransform(scrollY, [0, 300], [0, -100]);
+  const bgY = useTransform(scrollY, [0, 500], [0, -150]);
 
   return (
-    <div style={page}>
-      {/* CURSOR GLOW */}
-      <div id="cursorGlow" style={cursorGlow}></div>
+    <PageWrapper>
+      {/* 🌌 Animated Background */}
+      <AnimatedBackground />
 
-      {/* PARTICLES */}
-      <div style={particles}>
-        {[...Array(30)].map((_, i) => (
-          <span key={i} style={particle()}></span>
-        ))}
-      </div>
-
-      {/* HERO */}
-      <div style={hero}>
-        <h1 style={title}>
-          Welcome to <span style={highlight}>Event Planner</span>
-        </h1>
-
-        <p style={subtitle}>
-          Discover • Manage • Experience Events Like Never Before 🚀
-        </p>
-
-        <div style={btnContainer}>
-          <button
-            style={primaryBtn}
-            onClick={() => navigate("/events")}
+      <motion.div style={{ ...page, y: bgY }}>
+        
+        {/* ================= HERO ================= */}
+        <motion.section
+          style={{
+            ...hero,
+            scale,
+            opacity,
+            y,
+          }}
+        >
+          <motion.h1
+            style={title}
+            initial={{ opacity: 0, y: 80 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1 }}
           >
-            Explore Events
-          </button>
+            Event Planner 🚀
+          </motion.h1>
 
-          <button
-            style={secondaryBtn}
+          <motion.p
+            style={subtitle}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            Discover • Manage • Experience Events Like Never Before
+          </motion.p>
+
+          <motion.button
+            style={btn}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/login")}
           >
-            Login
-          </button>
+            Get Started →
+          </motion.button>
+        </motion.section>
+
+        {/* ================= TEXT ================= */}
+        <motion.h2
+          style={headline}
+          initial={{ scale: 0.8, opacity: 0 }}
+          whileInView={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          Built for Modern Events ⚡
+        </motion.h2>
+
+        {/* ================= FEATURES ================= */}
+        <section style={featuresSection}>
+          <motion.div style={grid}>
+            {features.map((f, i) => (
+              <motion.div
+                key={i}
+                style={card}
+                initial={{ opacity: 0, y: 100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: i * 0.2 }}
+                whileHover={{ scale: 1.08 }}
+                viewport={{ once: true }}
+              >
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+
+        {/* ================= FOOTER ================= */}
+        <div style={footer}>
+          © 2026 Event Planner • Built with ❤️
         </div>
-      </div>
-
-      {/* FEATURES */}
-      <div style={features}>
-        <h2 style={sectionTitle}>✨ Features</h2>
-
-        <div style={featureGrid}>
-          <Feature title="📅 Create Events" desc="Manage easily" />
-          <Feature title="📸 Gallery" desc="View memories" />
-          <Feature title="🎫 QR Attendance" desc="Smart tracking" />
-          <Feature title="🏆 Certificates" desc="Instant download" />
-        </div>
-      </div>
-
-      {/* IMAGES */}
-      <div style={imageSection}>
-        <img src="https://images.unsplash.com/photo-1523580846011-d3a5bc25702b" style={image} />
-        <img src="https://images.unsplash.com/photo-1511578314322-379afb476865" style={image} />
-      </div>
-
-      {/* FOOTER */}
-      <div style={footer}>
-        © 2026 Event Planner • Built for innovation 🚀
-      </div>
-    </div>
+      </motion.div>
+    </PageWrapper>
   );
 }
 
-/* ===== FEATURE COMPONENT ===== */
+/* ================= BACKGROUND ================= */
 
-function Feature({ title, desc }) {
-  return (
-    <div
-      style={featureCard}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+const AnimatedBackground = () => (
+  <div style={bgWrapper}>
+    <motion.div
+      style={circle1}
+      animate={{ x: [0, 100, -100, 0], y: [0, -50, 50, 0] }}
+      transition={{ duration: 18, repeat: Infinity }}
+    />
+    <motion.div
+      style={circle2}
+      animate={{ x: [0, -120, 120, 0], y: [0, 80, -80, 0] }}
+      transition={{ duration: 20, repeat: Infinity }}
+    />
+  </div>
+);
 
-        const rotateX = (y / rect.height - 0.5) * 10;
-        const rotateY = (x / rect.width - 0.5) * -10;
+/* ================= DATA ================= */
 
-        e.currentTarget.style.transform =
-          `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "none";
-      }}
-    >
-      <h3>{title}</h3>
-      <p>{desc}</p>
-    </div>
-  );
-}
+const features = [
+  { title: "📅 Create Events", desc: "Organize and manage events easily" },
+  { title: "🎫 QR Attendance", desc: "Smart attendance tracking system" },
+  { title: "📸 Event Gallery", desc: "Store and view event memories" },
+  { title: "🏆 Certificates", desc: "Instant certificate generation" },
+];
 
-/* ===== STYLES ===== */
+/* ================= STYLES ================= */
 
 const page = {
   minHeight: "100vh",
-  background: "linear-gradient(135deg, #020617, #1e3a8a)",
   color: "white",
-  position: "relative",
-  overflow: "hidden",
   fontFamily: "Segoe UI",
 };
 
-/* CURSOR GLOW */
-const cursorGlow = {
-  position: "fixed",
-  width: "300px",
-  height: "300px",
-  background: "radial-gradient(circle, rgba(99,102,241,0.3), transparent)",
-  borderRadius: "50%",
-  pointerEvents: "none",
-  transform: "translate(-50%, -50%)",
-};
-
-/* PARTICLES */
-const particles = {
-  position: "absolute",
-  width: "100%",
-  height: "100%",
-};
-
-const particle = () => ({
-  position: "absolute",
-  width: "5px",
-  height: "5px",
-  background: "white",
-  borderRadius: "50%",
-  opacity: 0.2,
-  top: Math.random() * 100 + "%",
-  left: Math.random() * 100 + "%",
-  animation: "float 10s linear infinite",
-});
-
 /* HERO */
 const hero = {
-  textAlign: "center",
-  padding: "120px 20px",
-  animation: "floatHero 6s ease-in-out infinite",
-};
-
-const title = { fontSize: "52px" };
-
-const highlight = {
-  background: "linear-gradient(to right, #3b82f6, #8b5cf6)",
-  WebkitBackgroundClip: "text",
-  color: "transparent",
-};
-
-const subtitle = { opacity: 0.8 };
-
-const btnContainer = {
-  marginTop: "20px",
+  height: "100vh",
   display: "flex",
+  flexDirection: "column",
   justifyContent: "center",
-  gap: "15px",
+  alignItems: "center",
+  textAlign: "center",
+  padding: "20px",
 };
 
-const primaryBtn = {
-  padding: "12px 20px",
-  borderRadius: "12px",
-  background: "#6366f1",
-  color: "white",
+const title = {
+  fontSize: "64px",
+  fontWeight: "bold",
+  textShadow: "0 0 30px rgba(99,102,241,0.6)",
+};
+
+const subtitle = {
+  marginTop: "15px",
+  fontSize: "18px",
+  opacity: 0.85,
+};
+
+const btn = {
+  marginTop: "30px",
+  padding: "14px 30px",
+  borderRadius: "999px",
   border: "none",
+  background: "linear-gradient(to right, #6366f1, #8b5cf6)",
+  color: "white",
+  fontSize: "16px",
   cursor: "pointer",
+  boxShadow: "0 10px 30px rgba(99,102,241,0.4)",
 };
 
-const secondaryBtn = {
-  padding: "12px 20px",
-  borderRadius: "12px",
-  background: "#22c55e",
-  color: "white",
-  border: "none",
+/* TEXT */
+const headline = {
+  fontSize: "40px",
+  textAlign: "center",
+  marginTop: "100px",
 };
 
 /* FEATURES */
-const features = { padding: "40px", textAlign: "center" };
+const featuresSection = {
+  padding: "100px 20px",
+};
 
-const sectionTitle = { fontSize: "28px" };
-
-const featureGrid = {
+const grid = {
   display: "flex",
-  gap: "20px",
+  gap: "25px",
   justifyContent: "center",
   flexWrap: "wrap",
+  marginTop: "50px",
 };
 
-const featureCard = {
-  width: "220px",
-  padding: "20px",
+const card = {
+  width: "240px",
+  padding: "25px",
   borderRadius: "20px",
   background: "rgba(255,255,255,0.08)",
-  backdropFilter: "blur(25px)",
-  boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-  transition: "0.3s",
-};
-
-/* IMAGES */
-const imageSection = {
-  display: "flex",
-  justifyContent: "center",
-  gap: "20px",
-  padding: "40px",
-};
-
-const image = {
-  width: "300px",
-  borderRadius: "15px",
+  backdropFilter: "blur(20px)",
+  boxShadow: "0 10px 40px rgba(0,0,0,0.6)",
+  border: "1px solid rgba(255,255,255,0.1)",
 };
 
 /* FOOTER */
@@ -231,4 +199,37 @@ const footer = {
   textAlign: "center",
   padding: "30px",
   opacity: 0.6,
+};
+
+/* BACKGROUND */
+const bgWrapper = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  zIndex: -1,
+  background: "linear-gradient(135deg, #020617, #1e3a8a)",
+};
+
+const circle1 = {
+  position: "absolute",
+  width: "500px",
+  height: "500px",
+  borderRadius: "50%",
+  background: "rgba(99,102,241,0.4)",
+  filter: "blur(120px)",
+  top: "20%",
+  left: "10%",
+};
+
+const circle2 = {
+  position: "absolute",
+  width: "500px",
+  height: "500px",
+  borderRadius: "50%",
+  background: "rgba(139,92,246,0.4)",
+  filter: "blur(120px)",
+  bottom: "10%",
+  right: "10%",
 };

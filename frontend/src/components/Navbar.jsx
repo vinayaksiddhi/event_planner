@@ -2,26 +2,38 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import supabase from "../services/supabase";
 import { useNavigate } from "react-router-dom";
+import { motion, useScroll } from "framer-motion";
 
 export default function Navbar() {
   const { user, role } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  const { scrollY } = useScroll();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [manageOpen, setManageOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [hidden, setHidden] = useState(false);
 
   const dropdownRef = useRef(null);
 
-  // ✅ responsive
+  /* 🔥 HIDE NAVBAR ON SCROLL */
+  useEffect(() => {
+    return scrollY.onChange((latest) => {
+      if (latest > 100) setHidden(true);
+      else setHidden(false);
+    });
+  }, [scrollY]);
+
+  /* responsive */
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ click outside close
+  /* click outside */
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -41,7 +53,14 @@ export default function Navbar() {
 
   return (
     <>
-      <div style={navbar} ref={dropdownRef}>
+      {/* 🔥 ANIMATED NAVBAR */}
+      <motion.div
+        initial={{ y: -80 }}
+        animate={{ y: hidden ? -100 : 0 }}
+        transition={{ duration: 0.4 }}
+        style={navbar}
+        ref={dropdownRef}
+      >
         {/* LOGO */}
         <div style={logo} onClick={() => navigate("/events")}>
           🎟️ Event Planner
@@ -50,7 +69,9 @@ export default function Navbar() {
         {/* DESKTOP */}
         {!isMobile && (
           <div style={navCenter}>
-            <NavButton onClick={() => navigate("/events")}>Events</NavButton>
+            <NavButton onClick={() => navigate("/events")}>
+              Events
+            </NavButton>
 
             {user && role !== "admin" && (
               <>
@@ -68,13 +89,8 @@ export default function Navbar() {
               </>
             )}
 
-            {/* UPLOAD */}
             {role === "admin" && (
-              <Dropdown
-                title="Upload"
-                open={uploadOpen}
-                setOpen={setUploadOpen}
-              >
+              <Dropdown title="Upload" open={uploadOpen} setOpen={setUploadOpen}>
                 <DropItem onClick={() => navigate("/upload-certificate")}>
                   Certificates
                 </DropItem>
@@ -84,13 +100,8 @@ export default function Navbar() {
               </Dropdown>
             )}
 
-            {/* MANAGE */}
             {role === "admin" && (
-              <Dropdown
-                title="Manage"
-                open={manageOpen}
-                setOpen={setManageOpen}
-              >
+              <Dropdown title="Manage" open={manageOpen} setOpen={setManageOpen}>
                 <DropItem onClick={() => navigate("/create")}>
                   Create Event
                 </DropItem>
@@ -99,9 +110,6 @@ export default function Navbar() {
                 </DropItem>
                 <DropItem onClick={() => navigate("/attendance")}>
                   Attendance
-                </DropItem>
-                <DropItem onClick={() => navigate("/admin-certificates")}>
-                  Certificates
                 </DropItem>
               </Dropdown>
             )}
@@ -115,28 +123,41 @@ export default function Navbar() {
               <>
                 <span style={email}>{user.email}</span>
 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
                   onClick={() => navigate("/profile")}
                   style={profileBtn}
                 >
                   Profile
-                </button>
+                </motion.button>
 
-                <button onClick={handleLogout} style={logoutBtn}>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  onClick={handleLogout}
+                  style={logoutBtn}
+                >
                   Logout
-                </button>
+                </motion.button>
               </>
             ) : (
               <>
-                <button onClick={() => navigate("/login")} style={loginBtn}>
+                <motion.button
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/login")}
+                  style={modernBtn}
+                >
                   Login
-                </button>
-                <button
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => navigate("/register")}
-                  style={registerBtn}
+                  style={modernBtnGradient}
                 >
                   Register
-                </button>
+                </motion.button>
               </>
             )}
           </div>
@@ -148,11 +169,15 @@ export default function Navbar() {
             ☰
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* MOBILE MENU */}
       {isMobile && menuOpen && (
-        <div style={mobileMenu}>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={mobileMenu}
+        >
           <MobileItem onClick={() => navigate("/events")}>Events</MobileItem>
 
           {role === "admin" && (
@@ -162,12 +187,6 @@ export default function Navbar() {
               </MobileItem>
               <MobileItem onClick={() => navigate("/upload-photos")}>
                 Upload Photos
-              </MobileItem>
-              <MobileItem onClick={() => navigate("/upload-certificate")}>
-                Upload Cert
-              </MobileItem>
-              <MobileItem onClick={() => navigate("/attendance")}>
-                Attendance
               </MobileItem>
             </>
           )}
@@ -187,21 +206,20 @@ export default function Navbar() {
               </MobileItem>
             </>
           )}
-        </div>
+        </motion.div>
       )}
     </>
   );
 }
 
-/* ===== COMPONENTS ===== */
+/* COMPONENTS SAME AS YOURS */
 
 function Dropdown({ title, children, open, setOpen }) {
   return (
-    <div style={dropdownContainer}>
+    <div style={{ position: "relative" }}>
       <button style={navBtn} onClick={() => setOpen(!open)}>
         {title} ⌄
       </button>
-
       {open && <div style={dropdown}>{children}</div>}
     </div>
   );
@@ -209,12 +227,7 @@ function Dropdown({ title, children, open, setOpen }) {
 
 function DropItem({ children, onClick }) {
   return (
-    <div
-      onClick={onClick}
-      style={dropItem}
-      onMouseEnter={(e) => (e.target.style.background = "#f1f5f9")}
-      onMouseLeave={(e) => (e.target.style.background = "white")}
-    >
+    <div onClick={onClick} style={dropItem}>
       {children}
     </div>
   );
@@ -222,16 +235,7 @@ function DropItem({ children, onClick }) {
 
 function NavButton({ children, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      style={navBtn}
-      onMouseEnter={(e) =>
-        (e.target.style.background = "rgba(255,255,255,0.35)")
-      }
-      onMouseLeave={(e) =>
-        (e.target.style.background = "rgba(255,255,255,0.2)")
-      }
-    >
+    <button onClick={onClick} style={navBtn}>
       {children}
     </button>
   );
@@ -245,16 +249,21 @@ function MobileItem({ children, onClick }) {
   );
 }
 
-/* ===== STYLES ===== */
+/* 🔥 UPDATED STYLES */
 
 const navbar = {
+  position: "fixed",
+  top: 0,
+  width: "100%",
   height: "70px",
   padding: "0 20px",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  background: "linear-gradient(to right, #1e3a8a, #2563eb)",
+  background: "rgba(30, 58, 138, 0.7)",
+  backdropFilter: "blur(20px)",
   color: "white",
+  zIndex: 1000,
 };
 
 const logo = { fontWeight: "bold", cursor: "pointer" };
@@ -262,13 +271,7 @@ const logo = { fontWeight: "bold", cursor: "pointer" };
 const navCenter = { display: "flex", gap: "12px" };
 const navRight = { display: "flex", gap: "10px", alignItems: "center" };
 
-const email = {
-  fontSize: "12px",
-  maxWidth: "140px",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  whiteSpace: "nowrap",
-};
+const email = { fontSize: "12px" };
 
 const navBtn = {
   background: "rgba(255,255,255,0.2)",
@@ -279,51 +282,45 @@ const navBtn = {
   cursor: "pointer",
 };
 
-const dropdownContainer = { position: "relative" };
-
 const dropdown = {
   position: "absolute",
   top: "45px",
-  left: 0,
   background: "white",
   color: "black",
   borderRadius: "12px",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-  minWidth: "180px",
-  zIndex: 1000,
 };
 
-const dropItem = {
-  padding: "10px 15px",
-  cursor: "pointer",
-};
+const dropItem = { padding: "10px", cursor: "pointer" };
 
-const profileBtn = {
-  padding: "6px 12px",
-  borderRadius: "8px",
-  background: "#22c55e",
-  color: "white",
-  border: "none",
-};
-
-const logoutBtn = {
-  padding: "6px 12px",
-  borderRadius: "8px",
-  background: "#ef4444",
-  color: "white",
-  border: "none",
-};
-
-const loginBtn = { padding: "6px", background: "#3b82f6", color: "white" };
-const registerBtn = { padding: "6px", background: "#22c55e", color: "white" };
+const profileBtn = { background: "#22c55e", color: "white" };
+const logoutBtn = { background: "#ef4444", color: "white" };
+const loginBtn = { background: "#3b82f6", color: "white" };
+const registerBtn = { background: "#22c55e", color: "white" };
 
 const hamburger = { fontSize: "22px", cursor: "pointer" };
 
 const mobileMenu = {
   background: "white",
   padding: "15px",
-  display: "flex",
-  flexDirection: "column",
 };
 
 const mobileItem = { padding: "10px", cursor: "pointer" };
+const modernBtn = {
+  padding: "8px 18px",
+  borderRadius: "999px",
+  border: "1px solid rgba(255,255,255,0.2)",
+  background: "rgba(255,255,255,0.08)",
+  color: "white",
+  backdropFilter: "blur(10px)",
+  cursor: "pointer",
+};
+
+const modernBtnGradient = {
+  padding: "8px 18px",
+  borderRadius: "999px",
+  border: "none",
+  background: "linear-gradient(to right, #6366f1, #8b5cf6)",
+  color: "white",
+  fontWeight: "500",
+  cursor: "pointer",
+};
