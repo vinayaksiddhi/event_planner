@@ -32,173 +32,194 @@ import { AuthContext } from "./context/AuthContext";
 
 // 🔥 ROUTES WITH ANIMATION
 function AnimatedRoutes() {
-  const { user, role } = useContext(AuthContext);
-  const location = useLocation();
+const { user, role } = useContext(AuthContext);
+const location = useLocation();
 
-  return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        
-        {/* ================= PUBLIC ================= */}
-        <Route path="/" element={<Home />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+return ( <AnimatePresence mode="wait"> <Routes location={location} key={location.pathname}>
 
-        {/* ================= USER ================= */}
-        <Route
-          path="/my-events"
-          element={
-            user ? (
-              role !== "admin" ? (
-                <ProtectedRoute>
-                  <MyEvents />
-                </ProtectedRoute>
-              ) : (
-                <Navigate to="/events" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+```
+    {/* ================= PUBLIC ================= */}
+    
+    {/* 🔥 AUTO REDIRECT LOGIC */}
+    <Route 
+      path="/" 
+      element={
+        user ? (
+          role === "admin" 
+            ? <Navigate to="/create" /> 
+            : <Navigate to="/events" />
+        ) : (
+          <Home />
+        )
+      } 
+    />
 
-        <Route
-          path="/certificates"
-          element={
-            user ? (
-              role !== "admin" ? (
-                <ProtectedRoute>
-                  <Certificates />
-                </ProtectedRoute>
-              ) : (
-                <Navigate to="/events" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+    <Route path="/events" element={<Events />} />
 
-        {/* ================= ADMIN ================= */}
-        <Route
-          path="/create"
-          element={
-            user ? (
-              role === "admin" ? (
-                <AdminRoute>
-                  <CreateEvent />
-                </AdminRoute>
-              ) : (
-                <Navigate to="/events" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+    {/* 🔥 Prevent logged-in users from seeing login/register */}
+    <Route 
+      path="/login" 
+      element={user ? <Navigate to="/events" /> : <Login />} 
+    />
 
-        <Route
-          path="/scan"
-          element={
-            user ? (
-              role === "admin" ? (
-                <AdminRoute>
-                  <ScanQR />
-                </AdminRoute>
-              ) : (
-                <Navigate to="/events" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+    <Route 
+      path="/register" 
+      element={user ? <Navigate to="/events" /> : <Register />} 
+    />
 
-        <Route
-          path="/upload-certificate"
-          element={
-            user ? (
-              role === "admin" ? (
-                <AdminRoute>
-                  <UploadCertificate />
-                </AdminRoute>
-              ) : (
-                <Navigate to="/events" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-
-        <Route
-          path="/admin-certificates"
-          element={
-            user ? (
-              role === "admin" ? (
-                <AdminRoute>
-                  <AdminCertificates />
-                </AdminRoute>
-              ) : (
-                <Navigate to="/events" />
-              )
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-
-        <Route
-          path="/attendance"
-          element={
-            <AdminRoute>
-              <Attendance />
-            </AdminRoute>
-          }
-        />
-
-        {/* ================= OTHER ================= */}
-        <Route
-          path="/profile"
-          element={
+    {/* ================= USER ================= */}
+    <Route
+      path="/my-events"
+      element={
+        user ? (
+          role !== "admin" ? (
             <ProtectedRoute>
-              <Profile />
+              <MyEvents />
             </ProtectedRoute>
-          }
-        />
+          ) : (
+            <Navigate to="/events" />
+          )
+        ) : (
+          <Navigate to="/login" />
+        )
+      }
+    />
 
-        <Route
-          path="/upload-photos"
-          element={
-            <AdminRoute>
-              <UploadEventPhotos />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/photos"
-          element={
+    <Route
+      path="/certificates"
+      element={
+        user ? (
+          role !== "admin" ? (
             <ProtectedRoute>
-              <Photos />
+              <Certificates />
             </ProtectedRoute>
-          }
-        />
+          ) : (
+            <Navigate to="/events" />
+          )
+        ) : (
+          <Navigate to="/login" />
+        )
+      }
+    />
 
-        {/* ================= FALLBACK ================= */}
-        <Route path="*" element={<h2>Page Not Found ❌</h2>} />
-      </Routes>
-    </AnimatePresence>
-  );
+    {/* ================= ADMIN ================= */}
+    <Route
+      path="/create"
+      element={
+        user ? (
+          role === "admin" ? (
+            <AdminRoute>
+              <CreateEvent />
+            </AdminRoute>
+          ) : (
+            <Navigate to="/events" />
+          )
+        ) : (
+          <Navigate to="/login" />
+        )
+      }
+    />
+
+    <Route
+      path="/scan"
+      element={
+        user ? (
+          role === "admin" ? (
+            <AdminRoute>
+              <ScanQR />
+            </AdminRoute>
+          ) : (
+            <Navigate to="/events" />
+          )
+        ) : (
+          <Navigate to="/login" />
+        )
+      }
+    />
+
+    <Route
+      path="/upload-certificate"
+      element={
+        user ? (
+          role === "admin" ? (
+            <AdminRoute>
+              <UploadCertificate />
+            </AdminRoute>
+          ) : (
+            <Navigate to="/events" />
+          )
+        ) : (
+          <Navigate to="/login" />
+        )
+      }
+    />
+
+    <Route
+      path="/admin-certificates"
+      element={
+        user ? (
+          role === "admin" ? (
+            <AdminRoute>
+              <AdminCertificates />
+            </AdminRoute>
+          ) : (
+            <Navigate to="/events" />
+          )
+        ) : (
+          <Navigate to="/login" />
+        )
+      }
+    />
+
+    <Route
+      path="/attendance"
+      element={
+        <AdminRoute>
+          <Attendance />
+        </AdminRoute>
+      }
+    />
+
+    {/* ================= OTHER ================= */}
+    <Route
+      path="/profile"
+      element={
+        <ProtectedRoute>
+          <Profile />
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/upload-photos"
+      element={
+        <AdminRoute>
+          <UploadEventPhotos />
+        </AdminRoute>
+      }
+    />
+
+    <Route
+      path="/photos"
+      element={
+        <ProtectedRoute>
+          <Photos />
+        </ProtectedRoute>
+      }
+    />
+
+    {/* ================= FALLBACK ================= */}
+    <Route path="*" element={<h2>Page Not Found ❌</h2>} />
+
+  </Routes>
+</AnimatePresence>
+
+
+);
 }
 
 // 🔥 MAIN APP
 export default function App() {
-  return (
-    <Router>
-      <Navbar />
-      <AnimatedRoutes />
-    </Router>
-  );
+return ( <Router> <Navbar /> <AnimatedRoutes /> </Router>
+);
 }
